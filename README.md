@@ -1,5 +1,3 @@
-Here’s a more technical README.md version suitable for a university project repository.
-
 📘 Online Math & English Skills Assessment Platform
 
 Mini Project — Software Requirements Specification (SRS)
