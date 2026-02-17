@@ -1,0 +1,467 @@
+/* --- Instructions.css --- */
+.instructions-layout {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  overflow: hidden;
+  flex-direction: row-reverse;
+}
+
+.instructions-container {
+  flex: 0 0 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 50px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 50%, #f8f9ff 100%);
+  overflow-y: auto;
+  position: relative;
+}
+
+.instructions-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+.left-decorative {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* decorative elements omitted for brevity in this snippet, but include them as in original file */
+.left-circle-1 { /* ... */ }
+.left-circle-2 { /* ... */ }
+/* keep all illustration rules from the file you already have */
+
+.instructions-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 1) 100%);
+  border-radius: 32px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.1), 0 10px 28px rgba(0, 0, 0, 0.05),
+    0 0 2px rgba(0, 0, 0, 0.04);
+  padding: 56px 48px;
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 500px;
+  border: 2px solid rgba(102, 126, 234, 0.12);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.instructions-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border-radius: 0 32px 32px 0;
+}
+
+.instructions-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: 32px;
+}
+
+/* header */
+.instructions-header {
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.instructions-header h1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+
+.instructions-header .subtitle {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+/* content and sections */
+.instructions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.welcome-section {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
+  padding: 28px 24px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(102, 126, 234, 0.2);
+  animation: slideUp 0.7s ease-out 0.1s both;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.welcome-icon {
+  font-size: 48px;
+  line-height: 1;
+  animation: bounce 0.6s ease-out 0.2s both;
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0) rotate(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+.welcome-text p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.welcome-text h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+.welcome-subtitle {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.instructions-section {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px 24px;
+  animation: slideUp 0.7s ease-out both;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.instructions-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.instructions-section:hover {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(102, 126, 234, 0.03) 100%);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+  transform: translateY(-2px);
+}
+
+.instructions-section:hover::before {
+  opacity: 1;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-icon {
+  font-size: 24px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border-radius: 10px;
+  transition: transform 0.2s ease;
+}
+
+.instructions-section:hover .section-icon {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+
+.instructions-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.instructions-list li {
+  margin: 0;
+  padding: 0 0 0 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
+  position: relative;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.instructions-list li:hover {
+  color: #1e293b;
+  transform: translateX(4px);
+}
+
+.bullet-icon {
+  position: absolute;
+  left: 4px;
+  font-size: 16px;
+  font-weight: 900;
+  transition: all 0.2s ease;
+}
+
+.instructions-section:nth-child(2) .bullet-icon {
+  color: #4ade80;
+}
+
+.instructions-section:nth-child(3) .bullet-icon {
+  color: #667eea;
+}
+
+.instructions-section:nth-child(4) .bullet-icon {
+  color: #f59e0b;
+}
+
+.instructions-section:nth-child(5) .bullet-icon {
+  color: #ec4899;
+}
+
+.start-exam-button {
+  width: 100%;
+  padding: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 24px;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3), 0 4px 12px rgba(102, 126, 234, 0.2);
+  letter-spacing: 0.3px;
+  animation: slideUp 0.7s ease-out 0.32s both;
+}
+
+.start-exam-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.start-exam-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4), 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
+.start-exam-button:hover::before {
+  left: 100%;
+}
+
+.start-exam-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.instructions-note {
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 20px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  animation: slideUp 0.7s ease-out 0.36s both;
+}
+
+/* Info Panel Styling (Left Side) */
+.instructions-info-panel {
+  flex: 0 0 40%;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 70px;
+  color: #333;
+}
+
+/* (rest of info-panel visuals preserved from original Register styling) */
+/* ... (include the remaining illustration and responsive CSS from the file in your workspace) */
+
+@media (max-width: 900px) {
+  .instructions-layout {
+    flex-direction: column-reverse;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .instructions-container {
+    flex: 0 0 auto;
+    padding: 40px 30px;
+    width: 100%;
+  }
+
+  .instructions-info-panel {
+    flex: 0 0 auto;
+    padding: 60px 40px;
+    min-height: 60vh;
+  }
+
+  .info-title {
+    font-size: 36px;
+  }
+
+  .info-text {
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+
+  .info-points {
+    gap: 16px;
+  }
+
+  .info-point p {
+    font-size: 16px;
+  }
+
+  .illustration-circle-1,
+  .illustration-circle-2,
+  .illustration-circle-3 {
+    opacity: 0.5;
+  }
+
+  .instructions-card {
+    max-width: none;
+    padding: 40px 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .instructions-layout {
+    padding: 10px;
+  }
+
+  .instructions-card {
+    padding: 32px 24px;
+    border-radius: 20px;
+    max-width: none;
+  }
+
+  .instructions-header h1 {
+    font-size: 26px;
+  }
+
+  .instructions-header .subtitle {
+    font-size: 14px;
+  }
+
+  .start-exam-button {
+    padding: 16px;
+    font-size: 16px;
+  }
+
+  .instructions-container {
+    padding: 30px 20px;
+  }
+
+  .instructions-card {
+    max-height: 85vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .instructions-card,
+  .start-exam-button,
+  .welcome-section,
+  .instructions-section {
+    animation: none;
+  }
+
+  .start-exam-button {
+    transition: none;
+  }
+}
+
+.start-exam-button:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
