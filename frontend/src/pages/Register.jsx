@@ -92,19 +92,20 @@ const Register = () => {
 
     try {
       const response = await registerStudent({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         mobilePhone: formData.mobilePhone,
       });
 
       if (response.success && response.data) {
         localStorage.setItem('studentData', JSON.stringify(response.data));
-        // For now, stay on the page and just log success.
-        console.log('Registration successful', response.data);
+        // Redirect to instructions page on success
+        navigate('/instructions');
       } else {
         setErrors({ submit: response.message || 'Registration failed. Please try again.' });
       }
     } catch (error) {
+      console.error('Registration error:', error);
       if (error?.errors && Object.keys(error.errors).length > 0) {
         setErrors({ ...error.errors, submit: error.message });
       } else {
