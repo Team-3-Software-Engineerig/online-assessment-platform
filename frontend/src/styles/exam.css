@@ -1,0 +1,222 @@
+/* Exam Page Styling - Responsive, Clean UI for 9th Graders */
+
+/* Main Container */
+.exam-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* Header */
+.exam-header {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exam-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.exam-timer {
+  font-size: 18px;
+  font-weight: 600;
+  color: #667eea;
+  padding: 8px 16px;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+}
+
+/* Question Card */
+.question-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.question-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #718096;
+  margin-bottom: 20px;
+}
+
+.question-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+/* Options Container */
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+/* Option Button */
+.option-button {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: 16px;
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-weight: 500;
+}
+
+.option-button:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.option-button.selected {
+  background: #48bb78;
+  border-color: #38a169;
+  color: white;
+  font-weight: 600;
+}
+
+.option-button.selected:hover {
+  background: #38a169;
+  border-color: #2f855a;
+}
+
+/* Next Button */
+.next-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  margin-left: auto;
+}
+
+.next-button:hover {
+  background: #5a67d8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.next-button:active {
+  transform: translateY(0);
+}
+
+/* Completion Message */
+.completion-message {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  max-width: 600px;
+  margin: 50px auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.completion-message h2 {
+  color: #48bb78;
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+.completion-message p {
+  color: #4a5568;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Responsive Design - Mobile */
+@media (max-width: 768px) {
+  .exam-layout {
+    padding: 15px;
+  }
+
+  .exam-header {
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+  }
+
+  .exam-title {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .exam-timer {
+    font-size: 16px;
+  }
+
+  .question-card {
+    padding: 20px;
+  }
+
+  .question-text {
+    font-size: 18px;
+  }
+
+  .option-button {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .next-button {
+    width: 100%;
+    padding: 14px 30px;
+    font-size: 16px;
+  }
+
+  .completion-message {
+    padding: 30px 20px;
+  }
+
+  .completion-message h2 {
+    font-size: 26px;
+  }
+
+  .completion-message p {
+    font-size: 16px;
+  }
+}
+
+/* Extra Small Devices */
+@media (max-width: 480px) {
+  .exam-title {
+    font-size: 18px;
+  }
+
+  .question-text {
+    font-size: 16px;
+  }
+
+  .option-button {
+    font-size: 14px;
+    padding: 12px 14px;
+  }
+}
