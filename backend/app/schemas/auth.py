@@ -1,15 +1,9 @@
-from pydantic import BaseModel, EmailStr
-
-
-class UserRegister(BaseModel):
-    """User registration schema"""
-    email: EmailStr
-    password: str
+from pydantic import BaseModel, Field
 
 
 class UserLogin(BaseModel):
     """User login schema"""
-    email: EmailStr
+    mobile_phone: str = Field(..., min_length=10, description="Mobile phone number")
     password: str
 
 
@@ -22,4 +16,3 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Token data schema"""
     user_id: str
-
