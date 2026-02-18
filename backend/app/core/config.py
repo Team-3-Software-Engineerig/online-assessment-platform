@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     MONGO_DATABASE: str = "exam_platform"
     SECRET_KEY: str = "your-secret-key-change-in-production"  # TODO: Move to .env
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ADMIN_MOBILE_PHONE: str = "+1234567890"
+    ADMIN_NAME: str = "Admin"
+    ADMIN_SURNAME: str = "User"
+    ADMIN_PASSWORD: str = "admin"  # TODO: Change in production
     
     @property
     def MONGODB_URI(self) -> str:
