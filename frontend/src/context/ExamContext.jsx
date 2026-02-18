@@ -1,38 +1,49 @@
-import React, { createContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
-// Create ExamContext
-export const ExamContext = createContext(null);
+const ExamContext = createContext();
 
-// ExamProvider component
+export const useExam = () => useContext(ExamContext);
+
 export const ExamProvider = ({ children }) => {
-  // State for current question index
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  
-  // State for answers - object map: { [index]: selectedValue }
-  const [answers, setAnswers] = useState({});
+    const [currentPageIndex, setCurrentPageIndex] = useState(0);
+    const [answers, setAnswers] = useState({});
+    const [maxReachedPageIndex, setMaxReachedPageIndex] = useState(0);
 
-  // Method to update answers immutably
-  const setAnswer = (index, value) => {
-    setAnswers(prevAnswers => ({
-      ...prevAnswers,
-      [index]: value
-    }));
-  };
+    const [startTime] = useState(Date.now());
+    const [endTime, setEndTime] = useState(null);
 
-  // Memoize the context value to avoid unnecessary re-renders
-  const value = useMemo(
-    () => ({
-      currentQuestionIndex,
-      setCurrentQuestionIndex,
-      answers,
-      setAnswer
-    }),
-    [currentQuestionIndex, answers]
-  );
+    const QUESTIONS_PER_PAGE = 5;
 
-  return (
-    <ExamContext.Provider value={value}>
-      {children}
-    </ExamContext.Provider>
-  );
+    const setAnswer = (questionId, value) => {
+        setAnswers((prev) => ({
+            ...prev,
+            [questionId]: value,
+        }));
+    };
+
+    const goNextPage = () => {
+        const nextIndex = currentPageIndex + 1;
+        setCurrentPageIndex(nextIndex);
+        if (nextIndex > maxReachedPageIndex) {
+            setMaxReachedPageIndex(nextIndex);
+        }
+    };
+
+    const submitGlobalExam = () => {
+        setEndTime(Date.now());
+    };
+
+    const value = {
+        currentPageIndex,
+        answers,
+        setAnswer,
+        goNextPage,
+        QUESTIONS_PER_PAGE,
+        maxReachedPageIndex,
+        startTime,
+        endTime,
+        submitGlobalExam,
+    };
+
+    return <ExamContext.Provider value={value}>{children}</ExamContext.Provider>;
 };
