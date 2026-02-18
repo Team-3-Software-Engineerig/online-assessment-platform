@@ -5,9 +5,11 @@ from functools import lru_cache
 class Settings(BaseSettings):
     MONGO_ROOT_USERNAME: str = "admin"
     MONGO_ROOT_PASSWORD: str = "admin"
-    MONGO_HOST: str = "localhost"
+    MONGO_HOST: str = "mongo"
     MONGO_PORT: int = 27018
     MONGO_DATABASE: str = "exam_platform"
+    SECRET_KEY: str = "your-secret-key-change-in-production"  # TODO: Move to .env
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     @property
     def MONGODB_URI(self) -> str:
