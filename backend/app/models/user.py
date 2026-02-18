@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, ConfigDict, Literal
+from pydantic import BaseModel, Field, ConfigDict, Literal
 from bson import ObjectId
 
 
@@ -28,10 +28,12 @@ class User(BaseModel):
     )
     
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    email: EmailStr = Field(..., unique=True)
+    mobile_phone: str = Field(..., unique=True)  # Mobile phone number (unique)
+    name: str = Field(..., min_length=1)
+    surname: str = Field(..., min_length=1)
     password_hash: str
     is_active: bool = Field(default=True)
-    role: Literal["student", "teacher"] = Field(default="student")
+    role: Literal["student", "teacher", "admin"] = Field(default="student")
 
 
 class Student(BaseModel):
