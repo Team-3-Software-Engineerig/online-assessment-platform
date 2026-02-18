@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Register from './pages/Register';
 import Instructions from './pages/Instructions';
-import Exam from './pages/Exam';
+import Assessment from './pages/Assessment';
+import Result from './pages/Result';
 import './App.css';
 
 function App() {
@@ -13,7 +14,8 @@ function App() {
           <Route path="/" element={<Navigate to="/register" replace />} />
           <Route path="/register" element={<Register />} />
           <Route path="/instructions" element={<Instructions />} />
-          <Route path="/exam" element={<Exam />} />
+          <Route path="/exam" element={<Assessment />} />
+          <Route path="/result" element={<Result />} />
         </Routes>
       </div>
     </Router>
