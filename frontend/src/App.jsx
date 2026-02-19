@@ -1,6 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Register from './pages/Register';
+import UserRoleSelection from './pages/UserRoleSelection';
+import RegisterStudent from './pages/RegisterStudent';
+import RegisterTeacher from './pages/RegisterTeacher';
+import RegisterManager from './pages/RegisterManager';
+import TeacherDashboard from './pages/TeacherDashboard';
 import Instructions from './pages/Instructions';
 import Assessment from './pages/Assessment';
 import Result from './pages/Result';
@@ -11,8 +15,12 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<Navigate to="/register" replace />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Navigate to="/select-role" replace />} />
+          <Route path="/select-role" element={<UserRoleSelection />} />
+          <Route path="/register/student" element={<RegisterStudent />} />
+          <Route path="/register/teacher" element={<RegisterTeacher />} />
+          <Route path="/register/manager" element={<RegisterManager />} />
+          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/exam" element={<Assessment />} />
           <Route path="/result" element={<Result />} />
