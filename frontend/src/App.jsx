@@ -5,6 +5,7 @@ import RegisterStudent from './pages/RegisterStudent';
 import RegisterTeacher from './pages/RegisterTeacher';
 import RegisterManager from './pages/RegisterManager';
 import TeacherDashboard from './pages/TeacherDashboard';
+import Admin from './pages/Admin';
 import Instructions from './pages/Instructions';
 import Assessment from './pages/Assessment';
 import Result from './pages/Result';
@@ -20,6 +21,7 @@ function App() {
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/teacher" element={<RegisterTeacher />} />
           <Route path="/register/manager" element={<RegisterManager />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/exam" element={<Assessment />} />
