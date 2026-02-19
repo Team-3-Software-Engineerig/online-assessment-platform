@@ -1,0 +1,7 @@
+# Root docker-compose.yml - orchestrates all services
+# To run: docker compose up --build
+# Or use: docker compose -f backend/docker-compose.yml -f frontend/docker-compose.yml up
+
+include:
+  - backend/docker-compose.yml
+  # - frontend/docker-compose.yml  # Uncomment when frontend is ready
