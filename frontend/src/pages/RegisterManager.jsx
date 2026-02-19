@@ -101,8 +101,11 @@ const RegisterManager = () => {
       if (response.success && response.data) {
         localStorage.setItem('userData', JSON.stringify(response.data));
         localStorage.setItem('userRole', 'manager');
-        // Redirect to manager dashboard or admin page
-        navigate('/admin');
+        if (response.data.access_token) {
+          localStorage.setItem('token', response.data.access_token);
+        }
+        // Redirect to manager dashboard
+        navigate('/manager/dashboard');
       } else {
         setErrors({ submit: response.message || 'Registration failed. Please try again.' });
       }

@@ -101,6 +101,9 @@ const RegisterTeacher = () => {
       if (response.success && response.data) {
         localStorage.setItem('userData', JSON.stringify(response.data));
         localStorage.setItem('userRole', 'teacher');
+        if (response.data.access_token) {
+          localStorage.setItem('token', response.data.access_token);
+        }
         // Redirect to teacher dashboard
         navigate('/teacher/dashboard');
       } else {

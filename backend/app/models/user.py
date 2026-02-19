@@ -1,22 +1,9 @@
-from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict, Literal
+from typing import Optional, Literal
+from pydantic import BaseModel, Field, ConfigDict
 from bson import ObjectId
 
 
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+from .base import PyObjectId
 
 
 class User(BaseModel):
@@ -33,7 +20,7 @@ class User(BaseModel):
     surname: str = Field(..., min_length=1)
     password_hash: str
     is_active: bool = Field(default=True)
-    role: Literal["student", "teacher", "admin"] = Field(default="student")
+    role: Literal["student", "teacher", "admin", "manager"] = Field(default="student")
 
 
 class Student(BaseModel):

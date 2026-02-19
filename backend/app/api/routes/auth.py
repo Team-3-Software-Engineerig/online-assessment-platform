@@ -5,7 +5,7 @@ from app.core.security import decode_access_token
 from app.clients.user_client import find_user_by_id
 from app.services.auth_service import authenticate_user
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 

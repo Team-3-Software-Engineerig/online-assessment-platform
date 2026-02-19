@@ -2,7 +2,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Mock mode - set to false when backend is ready
-const USE_MOCK_API = true;
+const USE_MOCK_API = false;
 
 // Generic registration function for all user roles
 export async function registerUser(payload) {
@@ -17,10 +17,10 @@ export async function registerUser(payload) {
     if (USE_MOCK_API) {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Generate mock user ID
       const mockId = Date.now();
-      
+
       const mockResponse = {
         id: mockId,
         firstName: cleanPayload.firstName,
@@ -39,7 +39,7 @@ export async function registerUser(payload) {
 
     // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
     const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/register` : '/api/register';
-    
+
     let response;
     try {
       response = await fetch(apiUrl, {
@@ -98,7 +98,7 @@ export async function getExams() {
     if (USE_MOCK_API) {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       // Generate mock exams data (only math exams)
       const mockExams = [
         {
@@ -152,13 +152,15 @@ export async function getExams() {
 
     // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
     const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/admin/exams` : '/api/admin/exams';
-    
+    const token = localStorage.getItem('token');
+
     let response;
     try {
       response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
       });
     } catch (fetchError) {

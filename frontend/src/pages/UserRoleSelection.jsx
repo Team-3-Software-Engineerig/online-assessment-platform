@@ -74,7 +74,7 @@ const UserRoleSelection = () => {
               key={role.id}
               className="role-card-modern"
               onClick={() => handleRoleSelect(role.route)}
-              style={{ 
+              style={{
                 '--role-color': role.color,
                 '--role-gradient': role.gradient,
                 '--role-light-gradient': role.lightGradient,
@@ -92,28 +92,28 @@ const UserRoleSelection = () => {
                     {role.title}
                   </div>
                 </div>
-                
+
                 <div className="role-text-content">
                   <h2 className="role-title-modern">{role.title}</h2>
                   <p className="role-description-modern">{role.description}</p>
-                  
+
                   <div className="role-features">
                     {role.features.map((feature, idx) => (
                       <div key={idx} className="feature-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <span>{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="role-card-footer">
                   <div className="role-arrow-modern">
                     <span>Get Started</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
@@ -147,6 +147,17 @@ const UserRoleSelection = () => {
               <span>Simple and intuitive</span>
             </div>
           </div>
+        </div>
+
+        <div style={{ marginTop: '30px', textAlign: 'center' }}>
+          <p style={{ color: '#64748b' }}>
+            Already have an account? <span
+              style={{ color: '#6366f1', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}
+              onClick={() => navigate('/login')}
+            >
+              Login instead
+            </span>
+          </p>
         </div>
       </div>
 

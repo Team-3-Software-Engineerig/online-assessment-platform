@@ -28,6 +28,10 @@ async def create_user_with_role(mobile_phone: str, name: str, surname: str, pass
     if existing_user:
         raise ValueError("Mobile phone number already registered")
     
+    # Use mobile phone as default password if not provided (for students/managers)
+    if not password:
+        password = mobile_phone
+        
     # Hash password
     password_hash = get_password_hash(password)
     

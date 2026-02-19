@@ -94,8 +94,65 @@ async def seed_admin_user(database):
     
     print(f"Admin credentials - Mobile: {admin_mobile_phone}, Password: {admin_password}")
     
-    # Debug: List all users to verify what's in the database
-    all_users = await database.users.find({}).to_list(length=10)
-    print(f"DEBUG: Total users in database: {len(all_users)}")
-    for u in all_users:
-        print(f"DEBUG: User - mobile_phone: '{u.get('mobile_phone')}', role: {u.get('role')}, id: {u.get('_id')}")
+    # Seed sample exam data if none exists
+    await seed_sample_data(database)
+
+
+async def seed_sample_data(database):
+    """Seed sample math exam and questions if the database is empty."""
+    from datetime import datetime, timedelta
+    
+    exam_count = await database.exams.count_documents({})
+    if exam_count > 0:
+        return
+
+    print("DEBUG: Seeding sample exam data...")
+    
+    # Create a math exam
+    math_exam = {
+        "title": "9th Grade Math Skills Evaluation",
+        "subject": "math",
+        "start_at": datetime.utcnow() - timedelta(days=1),
+        "end_at": datetime.utcnow() + timedelta(days=30),
+        "duration_minutes": 45,
+        "is_active": True
+    }
+    
+    result = await database.exams.insert_one(math_exam)
+    exam_id = result.inserted_id
+    
+    # Create sample questions
+    questions = [
+        {
+            "number": 1,
+            "exam_id": exam_id,
+            "statement": "What is 15 + 27?",
+            "type": "MCQ",
+            "answer": "b",
+            "options": {"a": "32", "b": "42", "c": "41", "d": "52"}
+        },
+        {
+            "number": 2,
+            "exam_id": exam_id,
+            "statement": "Solve for x: 3x - 5 = 10",
+            "type": "MCQ",
+            "answer": "c",
+            "options": {"a": "2", "b": "3", "c": "5", "d": "15"}
+        },
+        {
+            "number": 3,
+            "exam_id": exam_id,
+            "statement": "What is the square root of 144?",
+            "type": "MCQ",
+            "answer": "a",
+            "options": {"a": "12", "b": "14", "c": "11", "d": "13"}
+        }
+    ]
+    
+    await database.questions.insert_many(questions)
+    
+    # Update exam to include question IDs
+    question_ids = [q["_id"] for q in questions]
+    await database.exams.update_one({"_id": exam_id}, {"$set": {"questions": question_ids}})
+    
+    print(f"DEBUG: Sample data seeded. Exam ID: {exam_id}")

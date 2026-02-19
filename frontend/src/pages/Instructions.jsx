@@ -1,13 +1,52 @@
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useExam } from '../context/ExamContext';
+import { examService } from '../services/examService';
 import './Instructions.css';
 
 const Instructions = () => {
   const navigate = useNavigate();
-  const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
+  const { startExam, loading: examLoading } = useExam();
+  const [activeExams, setActiveExams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleStartExam = () => {
-    navigate('/exam');
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const studentName = userData.name || 'Student';
+
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        const exams = await examService.getActiveExams();
+        setActiveExams(exams);
+      } catch (err) {
+        console.error("Failed to fetch exams:", err);
+        setError("Could not load available exams. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExams();
+  }, []);
+
+  const handleStartExam = async () => {
+    if (activeExams.length === 0) {
+      alert("No active exams available at this time.");
+      return;
+    }
+
+    // For this prototype, we just pick the first available math exam
+    const mathExam = activeExams.find(e => e.subject === 'math') || activeExams[0];
+    const success = await startExam(userData.id, mathExam.id);
+
+    if (success) {
+      navigate('/exam');
+    } else {
+      alert("Failed to start the exam. Please try again.");
+    }
   };
+
+  if (loading) return <div className="loading">Loading instructions...</div>;
 
   return (
     <div className="instructions-layout">
@@ -34,10 +73,12 @@ const Instructions = () => {
               <div className="welcome-icon">👋</div>
               <div className="welcome-text">
                 <p>Welcome back,</p>
-                <h2>{studentData.firstName}!</h2>
+                <h2>{studentName}!</h2>
                 <span className="welcome-subtitle">Ready to showcase your skills?</span>
               </div>
             </div>
+
+            {error && <div className="error-message">{error}</div>}
 
             <div className="instructions-section">
               <div className="section-header">
@@ -65,34 +106,13 @@ const Instructions = () => {
               </ul>
             </div>
 
-            <div className="instructions-section">
-              <div className="section-header">
-                <span className="section-icon">⚡</span>
-                <h3 className="section-title">During the Exam</h3>
-              </div>
-              <ul className="instructions-list">
-                <li><span className="bullet-icon">★</span>Read each question carefully</li>
-                <li><span className="bullet-icon">★</span>Answer to the best of your ability</li>
-                <li><span className="bullet-icon">★</span>Answer honestly for accurate results</li>
-                <li><span className="bullet-icon">★</span>Don't switch tabs or minimize window</li>
-              </ul>
-            </div>
-
-            <div className="instructions-section">
-              <div className="section-header">
-                <span className="section-icon">🏆</span>
-                <h3 className="section-title">After Completion</h3>
-              </div>
-              <ul className="instructions-list">
-                <li><span className="bullet-icon">✨</span>Answers submit automatically</li>
-                <li><span className="bullet-icon">✨</span>Results displayed immediately</li>
-                <li><span className="bullet-icon">✨</span>Report shows your skill level</li>
-                <li><span className="bullet-icon">✨</span>Use results for placement guidance</li>
-              </ul>
-            </div>
-
-            <button type="button" className="start-exam-button" onClick={handleStartExam}>
-              Start Exam
+            <button
+              type="button"
+              className="start-exam-button"
+              onClick={handleStartExam}
+              disabled={examLoading || activeExams.length === 0}
+            >
+              {examLoading ? 'Starting...' : 'Start Exam'}
             </button>
 
             <p className="instructions-note">

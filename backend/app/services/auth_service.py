@@ -34,10 +34,10 @@ async def authenticate_user(mobile_phone: str, password: str) -> dict:
     if not user.get("is_active", True):
         raise ValueError("Inactive user")
     
-    # Only allow admin and teacher to login
+    # Only allow admin, teacher, and manager to login
     user_role = user.get("role", "student")
-    if user_role == "student":
-        raise ValueError("Students cannot login. Please use registration endpoint.")
+    if user_role not in ["admin", "teacher", "manager"]:
+        raise ValueError("Students cannot login with password. Please register or follow session link.")
     
     # Create access token
     user_id = str(user["_id"])
@@ -45,5 +45,9 @@ async def authenticate_user(mobile_phone: str, password: str) -> dict:
     
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user_id": user_id,
+        "role": user_role,
+        "name": user.get("name", ""),
+        "surname": user.get("surname", "")
     }

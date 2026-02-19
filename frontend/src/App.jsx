@@ -4,7 +4,10 @@ import UserRoleSelection from './pages/UserRoleSelection';
 import RegisterStudent from './pages/RegisterStudent';
 import RegisterTeacher from './pages/RegisterTeacher';
 import RegisterManager from './pages/RegisterManager';
+import Login from './pages/Login';
 import TeacherDashboard from './pages/TeacherDashboard';
+import CreateExam from './pages/CreateExam';
+import ManagerDashboard from './pages/ManagerDashboard';
 import Instructions from './pages/Instructions';
 import Assessment from './pages/Assessment';
 import Result from './pages/Result';
@@ -20,7 +23,10 @@ function App() {
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/teacher" element={<RegisterTeacher />} />
           <Route path="/register/manager" element={<RegisterManager />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+          <Route path="/teacher/exams/create" element={<CreateExam />} />
+          <Route path="/manager/dashboard" element={<ManagerDashboard />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/exam" element={<Assessment />} />
           <Route path="/result" element={<Result />} />

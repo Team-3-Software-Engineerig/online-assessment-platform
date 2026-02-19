@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.db.db import connect_to_mongo, close_mongo_connection
-from app.api.routes import auth, exam, admin, registration
+from app.api.routes import auth, exam, admin, registration, report
 
 
 @asynccontextmanager
@@ -20,6 +20,7 @@ app.include_router(auth.router)
 app.include_router(exam.router)
 app.include_router(admin.router)
 app.include_router(registration.router)
+app.include_router(report.router)
 
 
 @app.get("/")

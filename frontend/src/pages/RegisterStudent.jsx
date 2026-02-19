@@ -101,6 +101,9 @@ const RegisterStudent = () => {
       if (response.success && response.data) {
         localStorage.setItem('userData', JSON.stringify(response.data));
         localStorage.setItem('userRole', 'student');
+        if (response.data.access_token) {
+          localStorage.setItem('token', response.data.access_token);
+        }
         // Redirect to instructions page on success
         navigate('/instructions');
       } else {

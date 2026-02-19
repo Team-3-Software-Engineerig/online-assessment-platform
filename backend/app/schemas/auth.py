@@ -11,6 +11,10 @@ class Token(BaseModel):
     """Token response schema"""
     access_token: str
     token_type: str = "bearer"
+    user_id: str
+    role: str
+    name: str
+    surname: str
 
 
 class TokenData(BaseModel):

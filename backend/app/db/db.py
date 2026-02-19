@@ -15,22 +15,24 @@ async def connect_to_mongo():
     client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=5000)
     
     # Wait for MongoDB to be ready (with retries)
-    max_retries = 30
+    max_retries = 5  # Reduced for local dev without mongo
     for attempt in range(max_retries):
         try:
             # Test connection
             await client.admin.command('ping')
+            database = client.get_database(settings.MONGO_DATABASE)
+            # Create indexes on first connection
+            await create_indexes()
+            # Seed admin user
+            await seed_admin_user(database)
+            print("Successfully connected to MongoDB")
             break
         except Exception as exc:
+            print(f"Attempt {attempt + 1}: Failed to connect to MongoDB: {exc}")
             if attempt == max_retries - 1:
-                raise ConnectionError(f"Failed to connect to MongoDB after {max_retries} attempts: {exc}")
-            await asyncio.sleep(1)
-    
-    database = client.get_database(settings.MONGO_DATABASE)
-    # Create indexes on first connection
-    await create_indexes()
-    # Seed admin user
-    await seed_admin_user(database)
+                print("WARNING: Could not connect to MongoDB. Database features will not work.")
+            else:
+                await asyncio.sleep(1)
 
 
 async def create_indexes():
