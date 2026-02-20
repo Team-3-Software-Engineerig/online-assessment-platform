@@ -325,6 +325,20 @@
   border-top: 1px solid #e2e8f0;
 }
 
+/* Two-button footer layout */
+.card-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.card-footer-actions .view-exam-btn {
+  flex: 1;
+}
+
+.card-footer-actions .assign-exam-btn {
+  flex: 1;
+}
+
 .view-exam-btn {
   width: 100%;
   padding: 10px;
@@ -342,6 +356,67 @@
   background: #10b981;
   color: white;
   transform: translateY(-1px);
+}
+
+/* Assign button — green fill */
+.assign-exam-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.assign-exam-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+/* Assigned-students count row */
+.exam-assigned-indicator {
+  color: #059669 !important;
+  font-weight: 600;
+}
+
+.exam-assigned-indicator svg {
+  color: #10b981 !important;
+}
+
+/* Toast */
+.td-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  z-index: 2000;
+  white-space: nowrap;
+  animation: tdToastIn 0.25s ease;
+  border-left: 4px solid #10b981;
+}
+
+@keyframes tdToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* Filter Notice */

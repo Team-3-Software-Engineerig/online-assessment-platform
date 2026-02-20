@@ -5,9 +5,12 @@ import RegisterStudent from './pages/RegisterStudent';
 import RegisterTeacher from './pages/RegisterTeacher';
 import RegisterManager from './pages/RegisterManager';
 import TeacherDashboard from './pages/TeacherDashboard';
+
+import CreateExam from './pages/CreateExam';
 import Instructions from './pages/Instructions';
 import Assessment from './pages/Assessment';
 import Result from './pages/Result';
+import StudentExamList from './pages/StudentExamList';
 import './App.css';
 
 function App() {
@@ -21,9 +24,12 @@ function App() {
           <Route path="/register/teacher" element={<RegisterTeacher />} />
           <Route path="/register/manager" element={<RegisterManager />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+
+          <Route path="/teacher/exams/create" element={<CreateExam />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/exam" element={<Assessment />} />
           <Route path="/result" element={<Result />} />
+          <Route path="/student/exams" element={<StudentExamList />} />
         </Routes>
       </div>
     </Router>
