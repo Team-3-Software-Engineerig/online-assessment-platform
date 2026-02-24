@@ -10,6 +10,7 @@ import Instructions from './pages/Instructions';
 import Assessment from './pages/Assessment';
 import Result from './pages/Result';
 import StudentExamList from './pages/StudentExamList';
+import CreateExam from "./pages/CreateExam";
 import './App.css';
 
 function App() {
