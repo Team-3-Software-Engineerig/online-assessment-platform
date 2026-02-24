@@ -4,6 +4,137 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 // Mock mode - set to false when backend is ready
 const USE_MOCK_API = true;
 
+// Create a new MCQ question
+export async function createQuestion(payload) {
+  try {
+    // MOCK MODE: Simulate successful creation without backend
+    if (USE_MOCK_API) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const mockQuestion = {
+        id: Date.now(),
+        questionText: payload.questionText,
+        options: payload.options,
+        createdAt: new Date().toISOString(),
+      };
+
+      return {
+        success: true,
+        data: mockQuestion,
+        message: 'Question created successfully!',
+      };
+    }
+
+    // REAL API CALL (set USE_MOCK_API to false when backend is ready)
+    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/questions` : '/api/questions';
+
+    let response;
+    try {
+      response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (fetchError) {
+      throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:8000');
+    }
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (jsonError) {
+      const text = await response.text();
+      throw new Error(`Server error: ${text || 'Invalid response from server'}`);
+    }
+
+    if (!response.ok) {
+      const message = responseData?.detail || responseData?.message || `Failed to create question (${response.status})`;
+      throw new Error(message);
+    }
+
+    return {
+      success: true,
+      data: responseData,
+      message: responseData?.message || 'Question created successfully!',
+    };
+  } catch (error) {
+    if (error.message.includes('Cannot connect') || error.message.includes('Server error')) {
+      throw error;
+    }
+    throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+  }
+}
+
+// Create a full exam with multiple questions
+export async function createExam(payload) {
+  try {
+    // MOCK MODE: Simulate successful creation without backend
+    if (USE_MOCK_API) {
+      await new Promise(resolve => setTimeout(resolve, 700));
+
+      const savedExam = {
+        id: Date.now(),
+        title: payload.title,
+        subject: payload.subject,
+        duration: payload.duration,
+        total_questions: payload.questions.length,
+        status: 'Active',
+        created_at: new Date().toISOString(),
+      };
+
+      // Persist to localStorage so the dashboard can show it
+      try {
+        const existing = JSON.parse(localStorage.getItem('teacher_created_exams') || '[]');
+        localStorage.setItem('teacher_created_exams', JSON.stringify([savedExam, ...existing]));
+      } catch (_) { /* localStorage blocked - non-critical */ }
+
+      return {
+        success: true,
+        data: savedExam,
+        message: `Exam "${payload.title}" created with ${payload.questions.length} question${payload.questions.length !== 1 ? 's' : ''}!`,
+      };
+    }
+
+    // REAL API CALL (set USE_MOCK_API to false when backend is ready)
+    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/exams` : '/api/exams';
+
+    let response;
+    try {
+      response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (fetchError) {
+      throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:8000');
+    }
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch {
+      const text = await response.text();
+      throw new Error(`Server error: ${text || 'Invalid response from server'}`);
+    }
+
+    if (!response.ok) {
+      const message = responseData?.detail || responseData?.message || `Failed to create exam (${response.status})`;
+      throw new Error(message);
+    }
+
+    return {
+      success: true,
+      data: responseData,
+      message: responseData?.message || 'Exam created successfully!',
+    };
+  } catch (error) {
+    if (error.message.includes('Cannot connect') || error.message.includes('Server error')) {
+      throw error;
+    }
+    throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+  }
+}
+
 // Generic registration function for all user roles
 export async function registerUser(payload) {
   try {
@@ -17,10 +148,10 @@ export async function registerUser(payload) {
     if (USE_MOCK_API) {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Generate mock user ID
       const mockId = Date.now();
-      
+
       const mockResponse = {
         id: mockId,
         firstName: cleanPayload.firstName,
@@ -39,7 +170,7 @@ export async function registerUser(payload) {
 
     // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
     const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/register` : '/api/register';
-    
+
     let response;
     try {
       response = await fetch(apiUrl, {
@@ -98,8 +229,14 @@ export async function getExams() {
     if (USE_MOCK_API) {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Generate mock exams data (only math exams)
+
+      // Load teacher-created exams from localStorage (saved by createExam)
+      let teacherCreatedExams = [];
+      try {
+        teacherCreatedExams = JSON.parse(localStorage.getItem('teacher_created_exams') || '[]');
+      } catch (_) { /* ignore */ }
+
+      // Default mock exams data
       const mockExams = [
         {
           id: 1,
@@ -143,16 +280,17 @@ export async function getExams() {
         },
       ];
 
+      // Prepend teacher-created exams so they appear at the top of the dashboard
       return {
         success: true,
-        data: mockExams,
+        data: [...teacherCreatedExams, ...mockExams],
         message: 'Exams fetched successfully',
       };
     }
 
     // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
     const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/admin/exams` : '/api/admin/exams';
-    
+
     let response;
     try {
       response = await fetch(apiUrl, {

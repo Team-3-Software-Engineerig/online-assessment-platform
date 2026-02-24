@@ -9,6 +9,7 @@ import Admin from './pages/Admin';
 import Instructions from './pages/Instructions';
 import Assessment from './pages/Assessment';
 import Result from './pages/Result';
+import StudentExamList from './pages/StudentExamList';
 import './App.css';
 
 function App() {
@@ -23,9 +24,12 @@ function App() {
           <Route path="/register/manager" element={<RegisterManager />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+
+          <Route path="/teacher/exams/create" element={<CreateExam />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/exam" element={<Assessment />} />
           <Route path="/result" element={<Result />} />
+          <Route path="/student/exams" element={<StudentExamList />} />
         </Routes>
       </div>
     </Router>

@@ -1,14 +1,102 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isExamAssignedToStudent, getStudentId } from '../utils/assignmentUtils';
 import './Instructions.css';
 
 const Instructions = () => {
   const navigate = useNavigate();
   const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
 
+  // Access control: check if this student is assigned to the selected exam
+  const selectedExamId = localStorage.getItem('selectedExamId');
+  const studentId = getStudentId();
+
+  // Only enforce the guard when an examId is explicitly selected
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  useEffect(() => {
+    if (selectedExamId && studentId) {
+      const allowed = isExamAssignedToStudent(selectedExamId, studentId);
+      if (!allowed) setAccessDenied(true);
+    }
+  }, [selectedExamId, studentId]);
+
   const handleStartExam = () => {
     navigate('/exam');
   };
 
+  // ── Access Denied screen ────────────────────────────────────
+  if (accessDenied) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        fontFamily: 'Inter, system-ui, sans-serif',
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '20px',
+          padding: '48px 40px',
+          maxWidth: '460px',
+          width: '100%',
+          textAlign: 'center',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+          border: '2px solid #fee2e2',
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔒</div>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '800',
+            color: '#1e293b',
+            margin: '0 0 12px',
+          }}>
+            Access Denied
+          </h1>
+          <p style={{
+            fontSize: '15px',
+            color: '#64748b',
+            margin: '0 0 8px',
+            lineHeight: 1.6,
+          }}>
+            You are not assigned to this exam.
+          </p>
+          <p style={{
+            fontSize: '14px',
+            color: '#94a3b8',
+            margin: '0 0 32px',
+            lineHeight: 1.6,
+          }}>
+            Please contact your teacher if you believe this is a mistake, or check your assigned exams.
+          </p>
+          <button
+            onClick={() => navigate('/student/exams')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 28px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
+            }}
+          >
+            ← Back to My Exams
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Normal instructions screen ──────────────────────────────
   return (
     <div className="instructions-layout">
       <div className="instructions-container">
@@ -45,7 +133,7 @@ const Instructions = () => {
                 <h3 className="section-title">Quick Overview</h3>
               </div>
               <ul className="instructions-list">
-                <li><span className="bullet-icon">✓</span>Math & English assessment - placement test only</li>
+                <li><span className="bullet-icon">✓</span>Math &amp; English assessment - placement test only</li>
                 <li><span className="bullet-icon">✓</span>Timed exam with countdown timer</li>
                 <li><span className="bullet-icon">✓</span>Can review answers before final submission</li>
                 <li><span className="bullet-icon">✓</span>Cannot pause or leave during the exam</li>
