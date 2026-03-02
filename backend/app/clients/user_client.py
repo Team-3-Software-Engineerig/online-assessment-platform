@@ -33,3 +33,16 @@ async def is_user_admin(user_id: str) -> bool:
     if not user:
         return False
     return user.get("role") == "admin"
+
+
+async def update_user(user_id: str, update_data: dict) -> bool:
+    """Update user by ID."""
+    if db.database is None:
+        raise ValueError("Database not initialized")
+    if not ObjectId.is_valid(user_id):
+        return False
+    result = await db.database.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": update_data}
+    )
+    return result.modified_count > 0

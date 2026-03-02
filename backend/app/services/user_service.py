@@ -6,22 +6,68 @@ from app.core.security import get_password_hash
 from bson import ObjectId
 
 
-async def create_user_with_role(mobile_phone: str, name: str, surname: str, password: str, role: str) -> dict:
+async def create_user_with_role(mobile_phone: str, name: str, surname: str, password: str, role: str, subject: str = None) -> dict:
     """
-    Create a new user with the specified role.
+    Create a new user with the specified role. Used by Admin/Manager.
+    """
+    return await create_user_full(mobile_phone, name, surname, password, role, subject)
+
+async def self_register_user(mobile_phone: str, name: str, surname: str, password: str, role: str, subject: str = None) -> dict:
+    """
+    Allow a student or teacher to register themselves ONLY if they were pre-assigned by a manager.
+    """
+    from app.clients.user_client import update_user
     
-    Args:
-        mobile_phone: User mobile phone
-        name: User first name
-        surname: User last name
-        password: User password
-        role: User role (student, teacher, admin)
+    # Check if user already exists
+    existing_user = await find_user_by_mobile_phone(mobile_phone)
+    if not existing_user:
+        raise ValueError("You have not been assigned by a manager. Please contact your administrator to be added to the system.")
     
-    Returns:
-        dict with user details
+    # Check if role matches
+    if existing_user.get("role") != role:
+        raise ValueError(f"Mobile number registered but not with the role: {role}. Please contact support.")
+        
+    # Prepare update data
+    update_data = {
+        "name": name,
+        "surname": surname,
+        "is_active": True
+    }
     
-    Raises:
-        ValueError: If mobile phone already exists or invalid role
+    if password:
+        update_data["password_hash"] = get_password_hash(password)
+    
+    if subject:
+        update_data["subject"] = subject
+        
+    # Update user record
+    user_id = str(existing_user["_id"])
+    await update_user(user_id, update_data)
+    
+    # If it's a teacher, we might need to update the role-specific record too if subject changed
+    if role == "teacher" and subject:
+        from app.db import db
+        await db.database.teachers.update_one(
+            {"user_id": ObjectId(user_id)},
+            {"$set": {"subject": subject}}
+        )
+
+    return {
+        "id": user_id,
+        "mobile_phone": mobile_phone,
+        "mobilePhone": mobile_phone,
+        "name": name,
+        "surname": surname,
+        "firstName": name,
+        "lastName": surname,
+        "role": role,
+        "subject": subject or existing_user.get("subject"),
+        "is_active": True
+    }
+
+async def create_user_full(mobile_phone: str, name: str, surname: str, password: str, role: str, subject: str = None) -> dict:
+    """
+    Create a new user with the specified role and optional subject.
     """
     # Check if user already exists
     existing_user = await find_user_by_mobile_phone(mobile_phone)
@@ -42,7 +88,8 @@ async def create_user_with_role(mobile_phone: str, name: str, surname: str, pass
         "surname": surname,
         "password_hash": password_hash,
         "is_active": True,
-        "role": role
+        "role": role,
+        "subject": subject
     }
     
     # Create user
@@ -59,7 +106,8 @@ async def create_user_with_role(mobile_phone: str, name: str, surname: str, pass
     elif role == "teacher":
         teacher_doc = {
             "user_id": created_user_id,
-            "exams": []
+            "exams": [],
+            "subject": subject
         }
         await create_teacher(teacher_doc)
     # Admin doesn't need a separate document
@@ -67,8 +115,12 @@ async def create_user_with_role(mobile_phone: str, name: str, surname: str, pass
     return {
         "id": user_id,
         "mobile_phone": mobile_phone,
+        "mobilePhone": mobile_phone,
         "name": name,
         "surname": surname,
+        "firstName": name,
+        "lastName": surname,
         "role": role,
+        "subject": subject,
         "is_active": True
     }

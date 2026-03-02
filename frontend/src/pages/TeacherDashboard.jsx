@@ -11,7 +11,6 @@ const TeacherDashboard = () => {
   const [filteredExams, setFilteredExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reports, setReports] = useState([]);
   const [teacherName, setTeacherName] = useState('');
   const [teacherSubject, setTeacherSubject] = useState(null);
 
@@ -29,7 +28,7 @@ const TeacherDashboard = () => {
     if (userData) {
       try {
         const user = JSON.parse(userData);
-        setTeacherName(user.name || user.firstName || 'Teacher');
+        setTeacherName(user.firstName || 'Teacher');
         setTeacherSubject(user.subject || user.teacherSubject || null);
       } catch (err) {
         console.error('Error parsing user data:', err);
@@ -37,7 +36,6 @@ const TeacherDashboard = () => {
     }
 
     fetchExams();
-    fetchReports();
   }, []);
 
   useEffect(() => {
@@ -53,21 +51,6 @@ const TeacherDashboard = () => {
       setFilteredExams(exams);
     }
   }, [exams, teacherSubject]);
-
-  const fetchReports = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/reports', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setReports(data || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch reports:", err);
-    }
-  };
 
   const fetchExams = async () => {
     try {
@@ -143,6 +126,7 @@ const TeacherDashboard = () => {
   return (
     <div className="teacher-dashboard">
       <div className="dashboard-container">
+        {/* Header */}
         <div className="dashboard-header">
           <div className="header-content">
             <div className="welcome-section">
@@ -156,6 +140,14 @@ const TeacherDashboard = () => {
                 }
               </p>
             </div>
+            {teacherSubject && (
+              <div className="subject-badge-large">
+                <span className="subject-icon">
+                  {teacherSubject.toLowerCase() === 'math' ? '🔢' : '📚'}
+                </span>
+                <span>{teacherSubject.charAt(0).toUpperCase() + teacherSubject.slice(1)} Teacher</span>
+              </div>
+            )}
           </div>
           <button className="create-new-btn" onClick={handleCreateNew}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -165,6 +157,7 @@ const TeacherDashboard = () => {
           </button>
         </div>
 
+        {/* Content */}
         <div className="dashboard-content">
           {loading ? (
             <div className="loading-state">
@@ -271,28 +264,11 @@ const TeacherDashboard = () => {
                         </button>
                       </div>
                     </div>
-                  </div>
-              );
-              })}
-            </div>
-          )}
-
-          <div className="recent-results" style={{ marginTop: '40px' }}>
-            <h2>Recent Student Submissions</h2>
-            {reports.length === 0 ? (
-              <p>No submissions yet.</p>
-            ) : (
-              <div className="reports-list">
-                {reports.map(report => (
-                  <div key={report.id} style={{ padding: '15px', background: 'white', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <strong>Student ID: {report.student_id}</strong>
-                    <span style={{ marginLeft: '20px' }}>Score: {report.score}/{report.total} ({Math.round(report.percentage)}%)</span>
-                    <span style={{ float: 'right', color: '#64748b' }}>{new Date(report.created_at).toLocaleDateString()}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 

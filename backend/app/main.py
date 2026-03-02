@@ -10,6 +10,11 @@ async def lifespan(app: FastAPI):
     await connect_to_mongo()
     yield
     # Shutdown
+    from app.db.db import save_mock_db
+    try:
+        await save_mock_db()
+    except Exception:
+        pass
     await close_mongo_connection()
 
 

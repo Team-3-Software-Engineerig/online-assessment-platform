@@ -2,7 +2,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Mock mode - set to false when backend is ready
-const USE_MOCK_API = false;
+const USE_MOCK_API = true;
 
 // Create a new MCQ question
 export async function createQuestion(payload) {
@@ -96,8 +96,7 @@ export async function createExam(payload) {
     }
 
     // REAL API CALL (set USE_MOCK_API to false when backend is ready)
-    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/admin/exams/create` : '/api/admin/exams/create';
-
+    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/exams` : '/api/exams';
 
     let response;
     try {
@@ -291,7 +290,6 @@ export async function getExams() {
 
     // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
     const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/admin/exams` : '/api/admin/exams';
-    const token = localStorage.getItem('token');
 
     let response;
     try {
@@ -299,7 +297,6 @@ export async function getExams() {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
       });
     } catch (fetchError) {

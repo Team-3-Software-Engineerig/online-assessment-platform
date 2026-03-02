@@ -1,39 +1,43 @@
 from fastapi import APIRouter, HTTPException, status
 from app.schemas.user import UserCreate, UserResponse
-from app.services.user_service import create_user_with_role
+from app.services.user_service import self_register_user
 from app.core.security import create_access_token
 
 router = APIRouter(prefix="/api/register", tags=["registration"])
 
+
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user_endpoint(user_data: UserCreate):
     """
-    Public registration endpoint for all user roles.
-    In a real system, teacher/admin registration might be restricted,
-    but for this project prototype, we allow self-registration as requested in the UI.
+    Public self-registration endpoint.
+    Only students and teachers who have been PRE-ASSIGNED by a manager
+    are allowed to register here. Their mobile phone must already exist in the
+    system (added by a manager) for registration to succeed.
     """
+    if user_data.role not in ["student", "teacher", "manager"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only students, teachers, and managers can use self-registration."
+        )
+
     try:
-        # Map frontend 'firstName' and 'lastName' to 'name' and 'surname' if needed,
-        # but UserCreate schema already uses 'name' and 'surname'.
-        # The frontend sends 'firstName' and 'lastName' in RegisterStudent/etc.
-        # Let's check the schema again.
-        
-        result = await create_user_with_role(
+        result = await self_register_user(
             mobile_phone=user_data.mobile_phone,
             name=user_data.name,
             surname=user_data.surname,
             password=user_data.password,
-            role=user_data.role
+            role=user_data.role,
+            subject=user_data.subject
         )
-        
+
         # Generate token for auto-login
         access_token = create_access_token(data={"user_id": result["id"]})
         result["access_token"] = access_token
-        
+
         return result
     except ValueError as exc:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc)
         )
     except Exception as exc:

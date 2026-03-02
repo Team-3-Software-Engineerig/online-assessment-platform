@@ -1,42 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useExam } from '../context/ExamContext';
 import { User, Timer, BarChart2, AlertTriangle } from 'lucide-react';
 import ExamTimer from '../components/ExamTimer';
 import { useNavigate } from 'react-router-dom';
 import '../styles/exam.css';
 
+const DUMMY_QUESTIONS = [
+    { id: 1, text: "What is 5 + 7?", type: "mcq", options: ["10", "11", "12", "13"] },
+    { id: 2, text: "Identify the noun in this sentence: 'The cat sleeps.'", type: "mcq", options: ["The", "cat", "sleeps", "."] },
+    { id: 3, text: "Solve for x: 2x = 10", type: "short", label: "Answer:" },
+    { id: 4, text: "Which color is primary?", type: "mcq", options: ["Green", "Purple", "Red", "Orange"] },
+    { id: 5, text: "Write the past tense of 'run'.", type: "short", label: "Answer:" },
+    { id: 6, text: "What is 15 - 6?", type: "mcq", options: ["7", "8", "9", "10"] },
+    { id: 7, text: "Which word is an adjective? 'The red ball.'", type: "mcq", options: ["The", "red", "ball", "None"] },
+    { id: 8, text: "Capital of France?", type: "short", label: "City:" },
+    { id: 9, text: "3 * 4 = ?", type: "mcq", options: ["7", "12", "14", "9"] },
+    { id: 10, text: "Antonym of 'Hot'?", type: "short", label: "Word:" },
+    { id: 11, text: "What is 20 / 5?", type: "mcq", options: ["2", "4", "5", "10"] },
+    { id: 12, text: "Select the verb: 'He runs fast.'", type: "mcq", options: ["He", "runs", "fast", "."] },
+];
+
 const Assessment = () => {
-    const {
-        currentPageIndex,
-        answers,
-        questions,
-        setAnswer,
-        goNextPage,
-        QUESTIONS_PER_PAGE,
-        submitGlobalExam,
-        durationMinutes,
-        loading,
-        sessionToken
-    } = useExam();
+    const { currentPageIndex, answers, setAnswer, goNextPage, QUESTIONS_PER_PAGE, submitGlobalExam } = useExam();
     const navigate = useNavigate();
 
-    const [showWarning, setShowWarning] = useState(false);
-
-    // Redirect if no session
-    useEffect(() => {
-        if (!sessionToken && !loading) {
-            navigate('/instructions');
-        }
-    }, [sessionToken, loading, navigate]);
-
     const startIndex = currentPageIndex * QUESTIONS_PER_PAGE;
-    const currentQuestions = questions.slice(startIndex, startIndex + QUESTIONS_PER_PAGE);
+    const currentQuestions = DUMMY_QUESTIONS.slice(startIndex, startIndex + QUESTIONS_PER_PAGE);
 
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const studentName = userData.name || 'Student';
-
-    const totalQuestions = questions.length;
-    const answeredCount = Object.keys(answers).length;
+    // Placeholder data for the info panel
+    const studentName = JSON.parse(localStorage.getItem('studentData') || '{}').firstName || 'Student';
+    const totalQuestions = DUMMY_QUESTIONS.length;
+    const answeredCount = Object.keys(answers).filter(key => {
+        // Only count answers for valid questions
+        return DUMMY_QUESTIONS.some(q => q.id === parseInt(key));
+    }).length;
 
     const handleOptionChange = (questionId, value) => {
         setAnswer(questionId, value);
@@ -47,16 +44,18 @@ const Assessment = () => {
     };
 
     const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE);
-    const isLastPage = currentPageIndex === totalPages - 1 || totalPages === 0;
+    const isLastPage = currentPageIndex === totalPages - 1;
+
+    const [showWarning, setShowWarning] = useState(false);
 
     const handleNextClick = () => {
         setShowWarning(true);
     };
 
-    const confirmNavigation = async () => {
+    const confirmNavigation = () => {
         setShowWarning(false);
         if (isLastPage) {
-            await handleFinalSubmit();
+            submitExam();
         } else {
             goNextPage();
             window.scrollTo(0, 0);
@@ -67,25 +66,19 @@ const Assessment = () => {
         setShowWarning(false);
     };
 
-    const handleFinalSubmit = async () => {
-        const result = await submitGlobalExam();
-        if (result.success) {
-            navigate('/result', { state: { totalQuestions, answeredCount, sessionId: result.sessionId } });
-        } else {
-            alert("Failed to submit exam. Please check your connection and try again.");
-        }
+    const submitExam = () => {
+        submitGlobalExam();
+        navigate('/result', { state: { totalQuestions, answeredCount } });
     };
 
-    if (loading) return <div className="loading">Loading assessment...</div>;
-
-    if (questions.length === 0 && !loading) {
+    // If we ran out of questions, show a simple finish message
+    if (currentQuestions.length === 0) {
         return (
             <div className="exam-layout">
                 <div className="exam-container">
                     <div className="exam-header">
-                        <h1>No Questions Found</h1>
-                        <p className="subtitle">This exam doesn't seem to have any questions. Please contact your administrator.</p>
-                        <button onClick={() => navigate('/select-role')} className="btn-primary">Go Back</button>
+                        <h1>Exam Completed</h1>
+                        <p className="subtitle">Thank you for completing the assessment.</p>
                     </div>
                 </div>
             </div>
@@ -95,6 +88,7 @@ const Assessment = () => {
     return (
         <div className="exam-layout">
             <div className="exam-container">
+                {/* Decorative background elements */}
                 <div className="left-decorative">
                     <div className="left-circle-1" />
                     <div className="left-circle-2" />
@@ -105,7 +99,7 @@ const Assessment = () => {
                 <div className="exam-header">
                     <div className="header-title">
                         <h1>Validation Assessment</h1>
-                        <p className="subtitle">Page {currentPageIndex + 1} of {totalPages || 1}</p>
+                        <p className="subtitle">Page {currentPageIndex + 1} of {totalPages}</p>
                     </div>
                     <div className="header-info">
                         <div className="info-chip student-chip">
@@ -124,7 +118,7 @@ const Assessment = () => {
                             <div className="chip-content">
                                 <span className="chip-label">Time Remaining</span>
                                 <div className="chip-value timer-wrapper">
-                                    <ExamTimer initialSeconds={durationMinutes * 60} onExpire={handleFinalSubmit} />
+                                    <ExamTimer initialSeconds={45 * 60} onExpire={submitExam} />
                                 </div>
                             </div>
                         </div>
@@ -144,32 +138,32 @@ const Assessment = () => {
                     {currentQuestions.map((q, index) => (
                         <div key={q.id} className="question-card">
                             <div className="question-text">
-                                {startIndex + index + 1}. {q.statement}
+                                {startIndex + index + 1}. {q.text}
                             </div>
 
-                            {q.type === 'MCQ' && q.options && (
+                            {q.type === 'mcq' && (
                                 <div className="question-options">
-                                    {Object.entries(q.options).map(([key, value]) => (
-                                        <label key={key} className="option-label">
+                                    {q.options.map((option) => (
+                                        <label key={option} className="option-label">
                                             <input
                                                 type="radio"
                                                 name={`q-${q.id}`}
-                                                value={key}
-                                                checked={answers[q.id] === key}
-                                                onChange={() => handleOptionChange(q.id, key)}
+                                                value={option}
+                                                checked={answers[q.id] === option}
+                                                onChange={() => handleOptionChange(q.id, option)}
                                             />
-                                            {key.toUpperCase()}) {value}
+                                            {option}
                                         </label>
                                     ))}
                                 </div>
                             )}
 
-                            {q.type === 'Open-ended' && (
+                            {q.type === 'short' && (
                                 <div className="question-input">
                                     <input
                                         type="text"
                                         className="short-answer-input"
-                                        placeholder="Type your answer here..."
+                                        placeholder={q.label}
                                         value={answers[q.id] || ''}
                                         onChange={(e) => handleTextChange(q.id, e)}
                                     />
@@ -185,6 +179,7 @@ const Assessment = () => {
                     </button>
                 </div>
 
+                {/* Custom Warning Modal */}
                 {showWarning && (
                     <div className="modal-overlay">
                         <div className="modal-content">

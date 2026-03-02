@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
     surname: str = Field(..., validation_alias=AliasChoices('surname', 'lastName'), min_length=2)
     password: Optional[str] = Field(None, min_length=6)
     role: Literal["student", "teacher", "admin", "manager"] = Field(..., description="User role")
+    subject: Optional[str] = Field(None, validation_alias=AliasChoices('subject', 'teacherSubject'))
 
 
 class UserResponse(BaseModel):
@@ -21,7 +22,11 @@ class UserResponse(BaseModel):
     mobile_phone: str
     name: str
     surname: str
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
     role: str
+    subject: Optional[str] = None
+    mobilePhone: Optional[str] = None
     is_active: bool
     access_token: Optional[str] = None
     token_type: Optional[str] = "bearer"

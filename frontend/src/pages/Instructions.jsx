@@ -1,70 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useExam } from '../context/ExamContext';
-import { examService } from '../services/examService';
 import { isExamAssignedToStudent, getStudentId } from '../utils/assignmentUtils';
+import './Instructions.css';
 
 const Instructions = () => {
   const navigate = useNavigate();
-  const { startExam, loading: examLoading } = useExam();
-  const [activeExams, setActiveExams] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  const studentName = userData.name || userData.firstName || 'Student';
+  const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
 
   // Access control: check if this student is assigned to the selected exam
   const selectedExamId = localStorage.getItem('selectedExamId');
-  const studentId = getStudentId() || userData.id;
+  const studentId = getStudentId();
 
   // Only enforce the guard when an examId is explicitly selected
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
-    const fetchExams = async () => {
-      try {
-        const exams = await examService.getActiveExams();
-        setActiveExams(exams);
-      } catch (err) {
-        console.error("Failed to fetch exams:", err);
-        setError("Could not load available exams. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchExams();
-
     if (selectedExamId && studentId) {
       const allowed = isExamAssignedToStudent(selectedExamId, studentId);
       if (!allowed) setAccessDenied(true);
     }
   }, [selectedExamId, studentId]);
 
-  const handleStartExam = async () => {
-    if (activeExams.length === 0 && !selectedExamId) {
-      alert("No active exams available at this time.");
-      return;
-    }
-
-    // If we have a selected exam via the dashboard, use that
-    const examToStart = selectedExamId || (activeExams.find(e => e.subject === 'math') || activeExams[0])?.id;
-
-    if (!examToStart) {
-      alert("No exam selected.");
-      return;
-    }
-
-    const success = await startExam(studentId, examToStart);
-
-    if (success) {
-      navigate('/exam');
-    } else {
-      alert("Failed to start the exam. Please try again.");
-    }
+  const handleStartExam = () => {
+    navigate('/exam');
   };
-
-  if (loading) return <div className="loading">Loading instructions...</div>;
 
   // ── Access Denied screen ────────────────────────────────────
   if (accessDenied) {
@@ -136,6 +95,8 @@ const Instructions = () => {
       </div>
     );
   }
+
+  // ── Normal instructions screen ──────────────────────────────
   return (
     <div className="instructions-layout">
       <div className="instructions-container">
@@ -161,12 +122,10 @@ const Instructions = () => {
               <div className="welcome-icon">👋</div>
               <div className="welcome-text">
                 <p>Welcome back,</p>
-                <h2>{studentName}!</h2>
+                <h2>{studentData.firstName}!</h2>
                 <span className="welcome-subtitle">Ready to showcase your skills?</span>
               </div>
             </div>
-
-            {error && <div className="error-message">{error}</div>}
 
             <div className="instructions-section">
               <div className="section-header">
@@ -194,13 +153,34 @@ const Instructions = () => {
               </ul>
             </div>
 
-            <button
-              type="button"
-              className="start-exam-button"
-              onClick={handleStartExam}
-              disabled={examLoading || activeExams.length === 0}
-            >
-              {examLoading ? 'Starting...' : 'Start Exam'}
+            <div className="instructions-section">
+              <div className="section-header">
+                <span className="section-icon">⚡</span>
+                <h3 className="section-title">During the Exam</h3>
+              </div>
+              <ul className="instructions-list">
+                <li><span className="bullet-icon">★</span>Read each question carefully</li>
+                <li><span className="bullet-icon">★</span>Answer to the best of your ability</li>
+                <li><span className="bullet-icon">★</span>Answer honestly for accurate results</li>
+                <li><span className="bullet-icon">★</span>Don't switch tabs or minimize window</li>
+              </ul>
+            </div>
+
+            <div className="instructions-section">
+              <div className="section-header">
+                <span className="section-icon">🏆</span>
+                <h3 className="section-title">After Completion</h3>
+              </div>
+              <ul className="instructions-list">
+                <li><span className="bullet-icon">✨</span>Answers submit automatically</li>
+                <li><span className="bullet-icon">✨</span>Results displayed immediately</li>
+                <li><span className="bullet-icon">✨</span>Report shows your skill level</li>
+                <li><span className="bullet-icon">✨</span>Use results for placement guidance</li>
+              </ul>
+            </div>
+
+            <button type="button" className="start-exam-button" onClick={handleStartExam}>
+              Start Exam
             </button>
 
             <p className="instructions-note">

@@ -28,18 +28,30 @@ async def calculate_score(session_id: str):
     correct_count = 0
     total_questions = 0
     
+    print(f"DEBUG SCORING: session_id={session_id}")
+    print(f"DEBUG SCORING: responses stored = {responses}")
+    
     # Get all questions for this exam to compare answers
     cursor = _db().questions.find({"exam_id": session["exam_id"]})
     async for question in cursor:
         total_questions += 1
         q_id = str(question["_id"])
-        correct_answer = question.get("answer")
-        student_answer = responses.get(q_id)
+        correct_answer = question.get("answer", "").strip().lower()
+        student_answer = responses.get(q_id, "")
         
-        if student_answer and correct_answer and str(student_answer).lower() == str(correct_answer).lower():
+        if student_answer:
+            student_answer = str(student_answer).strip().lower()
+        
+        is_correct = bool(student_answer and correct_answer and student_answer == correct_answer)
+        
+        print(f"DEBUG SCORING: Q={q_id} | correct={correct_answer!r} | student={student_answer!r} | match={is_correct}")
+        
+        if is_correct:
             correct_count += 1
             
     score_percentage = (correct_count / total_questions * 100) if total_questions > 0 else 0
+    
+    print(f"DEBUG SCORING: Result = {correct_count}/{total_questions} = {score_percentage:.1f}%")
     
     report_doc = {
         "student_id": session["student_id"],

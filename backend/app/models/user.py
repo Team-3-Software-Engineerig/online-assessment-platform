@@ -21,6 +21,7 @@ class User(BaseModel):
     password_hash: str
     is_active: bool = Field(default=True)
     role: Literal["student", "teacher", "admin", "manager"] = Field(default="student")
+    subject: Optional[str] = None
 
 
 class Student(BaseModel):

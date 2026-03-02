@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 from app.services import exam_service
 from pydantic import BaseModel
+from app.api.routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/exams", tags=["exams"])
 
@@ -15,10 +16,14 @@ class SessionStart(BaseModel):
     exam_id: str
 
 @router.get("/active")
-async def list_active_exams():
-    """List all exams currently available."""
+async def list_active_exams(current_user: dict = Depends(get_current_user)):
+    """List all exams currently available for the logged-in student."""
     try:
-        return await exam_service.get_active_exams()
+        # Use mobile phone for assignment check as it's the primary identifier
+        return await exam_service.get_active_exams(
+            student_mobile=current_user.get("mobile_phone"),
+            student_id=str(current_user.get("_id"))
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -38,7 +43,7 @@ async def get_exam_questions(exam_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/sessions/start")
+@router.post("/start-session")
 async def start_session(data: SessionStart):
     """Start or resume an exam session."""
     try:
@@ -48,7 +53,7 @@ async def start_session(data: SessionStart):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/sessions/submit-answer")
+@router.post("/submit-answer")
 async def submit_answer(data: AnswerSubmission):
     """Submit an answer for a question."""
     try:
@@ -58,9 +63,12 @@ async def submit_answer(data: AnswerSubmission):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/sessions/complete/{session_token}")
-async def complete_session(session_token: str):
+@router.post("/complete-session")
+async def complete_session(data: dict):
     """Finish the exam session."""
+    session_token = data.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=400, detail="session_token is required")
     try:
         return await exam_service.complete_exam_session(session_token)
     except ValueError as e:
