@@ -1,0 +1,31 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: exam-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"  # Host port 27018 to avoid conflicts with local MongoDB
+    volumes:
+      - mongo_data:/data/db
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exam-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
+

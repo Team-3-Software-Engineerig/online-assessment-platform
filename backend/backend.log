@@ -1,0 +1,390 @@
+INFO:     Will watch for changes in these directories: ['/home/student/software engineering /online-assessment-platform/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [8695] using WatchFiles
+INFO:     Started server process [8697]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Attempt 1: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0588e8c052992f1c97b58, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 2: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0588e8c052992f1c97b58, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 3: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a0588e8c052992f1c97b58, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+WARNING: Falling back to in-memory Mock MongoDB (mongomock). Data will NOT be persisted!
+DEBUG: Generated password hash for admin: $2b$12$vh7JL0RatbxXD...
+Admin user created: +1234567890
+DEBUG: Password verification SUCCESS after creation
+Admin credentials - Mobile: +1234567890, Password: admin123
+INFO:     127.0.0.1:59298 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59298 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58796 - "POST /api/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:45584 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45598 - "GET /api/admin/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45608 - "GET /api/admin/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45614 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45616 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45618 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45620 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56816 - "POST /api/admin/users/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:57432 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:57446 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57452 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57468 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57476 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59408 - "POST /api/admin/users/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:44184 - "POST /api/admin/users/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52942 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52950 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52960 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52970 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50688 - "POST /api/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:50690 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:50698 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50700 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50714 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50716 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49436 - "POST /api/admin/exams/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:34088 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34100 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34110 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34126 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46516 - "POST /api/admin/exams/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:42384 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42396 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39240 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:34126 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34136 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34148 - "POST /api/exams/start-session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34160 - "GET /api/exams/69a05a138c052992f1c97b61/questions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54726 - "POST /api/exams/submit-answer HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54742 - "POST /api/exams/submit-answer HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54748 - "POST /api/exams/complete-session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54756 - "GET /api/reports/session/1df8e8aa-64ca-40b7-8285-c2950d4001b0 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 426, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 184, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 79, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 20, in __call__
+    raise e
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 274, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 191, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/api/routes/report.py", line 10, in get_report
+    report = await report_service.get_report_by_session(session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/services/report_service.py", line 128, in get_report_by_session
+    report = await _db().reports.find_one({"session_id": ObjectId(session_id)})
+                                                         ^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 105, in __init__
+    self.__validate(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 193, in __validate
+    _raise_invalid_id(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 38, in _raise_invalid_id
+    raise InvalidId(
+bson.errors.InvalidId: '1df8e8aa-64ca-40b7-8285-c2950d4001b0' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string
+INFO:     127.0.0.1:54760 - "GET /api/reports/session/1df8e8aa-64ca-40b7-8285-c2950d4001b0 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 426, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 184, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 79, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 20, in __call__
+    raise e
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 274, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 191, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/api/routes/report.py", line 10, in get_report
+    report = await report_service.get_report_by_session(session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/services/report_service.py", line 128, in get_report_by_session
+    report = await _db().reports.find_one({"session_id": ObjectId(session_id)})
+                                                         ^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 105, in __init__
+    self.__validate(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 193, in __validate
+    _raise_invalid_id(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 38, in _raise_invalid_id
+    raise InvalidId(
+bson.errors.InvalidId: '1df8e8aa-64ca-40b7-8285-c2950d4001b0' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string
+INFO:     127.0.0.1:54772 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54774 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51254 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:51256 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:51258 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:51272 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:51288 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:51302 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:47194 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47210 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47216 - "POST /api/exams/start-session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47232 - "GET /api/exams/69a059eb8c052992f1c97b5f/questions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47236 - "POST /api/exams/submit-answer HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47242 - "POST /api/exams/complete-session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47254 - "GET /api/reports/session/73f3c108-ff42-410b-8ff4-58b846476f0a HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 426, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 184, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 79, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 20, in __call__
+    raise e
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 274, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 191, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/api/routes/report.py", line 10, in get_report
+    report = await report_service.get_report_by_session(session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/services/report_service.py", line 128, in get_report_by_session
+    report = await _db().reports.find_one({"session_id": ObjectId(session_id)})
+                                                         ^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 105, in __init__
+    self.__validate(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 193, in __validate
+    _raise_invalid_id(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 38, in _raise_invalid_id
+    raise InvalidId(
+bson.errors.InvalidId: '73f3c108-ff42-410b-8ff4-58b846476f0a' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string
+INFO:     127.0.0.1:47262 - "GET /api/reports/session/73f3c108-ff42-410b-8ff4-58b846476f0a HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 426, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 184, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 79, in __call__
+    raise exc
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 20, in __call__
+    raise e
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 274, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/fastapi/routing.py", line 191, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/api/routes/report.py", line 10, in get_report
+    report = await report_service.get_report_by_session(session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/backend/app/services/report_service.py", line 128, in get_report_by_session
+    report = await _db().reports.find_one({"session_id": ObjectId(session_id)})
+                                                         ^^^^^^^^^^^^^^^^^^^^
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 105, in __init__
+    self.__validate(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 193, in __validate
+    _raise_invalid_id(oid)
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/bson/objectid.py", line 38, in _raise_invalid_id
+    raise InvalidId(
+bson.errors.InvalidId: '73f3c108-ff42-410b-8ff4-58b846476f0a' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string
+INFO:     127.0.0.1:47274 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47282 - "GET /api/exams/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37560 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:37570 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37574 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59790 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:59800 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59802 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59812 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59816 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59818 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59824 - "GET /api/admin/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59840 - "GET /api/admin/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59854 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59858 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59864 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59868 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/services/exam_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8697]
+INFO:     Started server process [12115]
+INFO:     Waiting for application startup.
+WARNING:  WatchFiles detected changes in 'app/api/routes/exam.py'. Reloading...
+INFO:     Application startup complete.
+ERROR:    Traceback (most recent call last):
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/starlette/routing.py", line 686, in lifespan
+    await receive()
+  File "/home/student/software engineering /online-assessment-platform/venv/lib/python3.12/site-packages/uvicorn/lifespan/on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+Attempt 1: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a05b6f4c745ad6b740ca82, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 2: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a05b6f4c745ad6b740ca82, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 3: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a05b6f4c745ad6b740ca82, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+WARNING: Falling back to in-memory Mock MongoDB (mongomock). Data will NOT be persisted!
+DEBUG: Generated password hash for admin: $2b$12$uzuPnhVtyqZYy...
+Admin user created: +1234567890
+DEBUG: Password verification SUCCESS after creation
+Admin credentials - Mobile: +1234567890, Password: admin123
+INFO:     Started server process [12265]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Attempt 1: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a05b827828fb0e720d640c, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 2: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a05b827828fb0e720d640c, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 3: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a05b827828fb0e720d640c, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+WARNING: Falling back to in-memory Mock MongoDB (mongomock). Data will NOT be persisted!
+DEBUG: Generated password hash for admin: $2b$12$GgC58JsloRo3K...
+Admin user created: +1234567890
+DEBUG: Password verification SUCCESS after creation
+Admin credentials - Mobile: +1234567890, Password: admin123
+INFO:     127.0.0.1:48070 - "POST /api/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:60916 - "POST /api/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:33894 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33904 - "GET /api/admin/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33920 - "GET /api/admin/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33926 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33930 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33942 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33944 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51036 - "POST /api/admin/users/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:35266 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:35276 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35284 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35300 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35316 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51622 - "POST /api/admin/users/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:54578 - "POST /api/admin/users/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40290 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40296 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40310 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40314 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40328 - "GET /api/admin/teachers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40338 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40354 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40364 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39654 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39664 - "GET /api/admin/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43524 - "POST /api/admin/exams/create HTTP/1.1" 201 Created
+INFO:     127.0.0.1:41208 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41214 - "GET /api/admin/exams HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33992 - "POST /api/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:60766 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:43676 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:43678 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:43680 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:45574 - "POST /api/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:45590 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+WARNING:  WatchFiles detected changes in 'app/services/exam_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [12265]
+INFO:     Started server process [18762]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Attempt 1: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a08a43c91e20fc74b79ee3, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 2: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a08a43c91e20fc74b79ee3, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+Attempt 3: Failed to connect to MongoDB: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 69a08a43c91e20fc74b79ee3, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+WARNING: Falling back to in-memory Mock MongoDB (mongomock). Data will NOT be persisted!
+DEBUG: Generated password hash for admin: $2b$12$3JfcO.Zq5HBgj...
+Admin user created: +1234567890
+DEBUG: Password verification SUCCESS after creation
+Admin credentials - Mobile: +1234567890, Password: admin123
+INFO:     127.0.0.1:58626 - "POST /api/exams/start-session HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:42948 - "POST /api/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:59638 - "GET /api/admin/exams HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:59650 - "GET /api/admin/exams HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60706 - "GET /api/admin/exams HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52332 - "GET /api/admin/exams HTTP/1.1" 401 Unauthorized
