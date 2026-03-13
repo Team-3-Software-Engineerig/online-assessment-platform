@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 .env
 .venv
+venv/
+*.log
+*_out.log
+*_stout.log
 
 # Node
 node_modules/

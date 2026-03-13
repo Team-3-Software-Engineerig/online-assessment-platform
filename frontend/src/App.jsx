@@ -11,6 +11,8 @@ import Assessment from './pages/Assessment';
 import Result from './pages/Result';
 import StudentExamList from './pages/StudentExamList';
 import CreateExam from "./pages/CreateExam";
+import Login from './pages/Login';
+import ManagerDashboard from './pages/ManagerDashboard';
 import './App.css';
 
 function App() {
@@ -23,7 +25,9 @@ function App() {
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/teacher" element={<RegisterTeacher />} />
           <Route path="/register/manager" element={<RegisterManager />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/manager/dashboard" element={<Admin />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 
           <Route path="/teacher/exams/create" element={<CreateExam />} />
@@ -31,6 +35,7 @@ function App() {
           <Route path="/exam" element={<Assessment />} />
           <Route path="/result" element={<Result />} />
           <Route path="/student/exams" element={<StudentExamList />} />
+          <Route path="/submissions" element={<ManagerDashboard />} />
         </Routes>
       </div>
     </Router>

@@ -1,4 +1,4 @@
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const authService = {
     login: async (mobilePhone, password) => {
@@ -7,7 +7,7 @@ export const authService = {
             ? '+' + mobilePhone.slice(1).replace(/\D/g, '')
             : mobilePhone.replace(/\D/g, '');
 
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mobile_phone: cleanPhone, password: password }),
@@ -24,9 +24,11 @@ export const authService = {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('userData', JSON.stringify({
             id: data.user_id,
-            name: data.name || (data.role === 'admin' ? 'Administrator' : 'User'),
-            surname: data.surname || '',
-            role: data.role
+            firstName: data.name || (data.role === 'admin' ? 'Administrator' : 'User'),
+            lastName: data.surname || '',
+            mobilePhone: data.mobile_phone || cleanPhone,
+            role: data.role,
+            access_token: data.access_token
         }));
         localStorage.setItem('userRole', data.role);
 
@@ -37,7 +39,7 @@ export const authService = {
         const token = localStorage.getItem('token');
         if (!token) return null;
 
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createExam } from '../services/api';
+import { createExam, getStudents } from '../services/api';
 import { generateTeacherExamPdf } from '../utils/teacherExamPdf';
 import './CreateExam.css';
 
@@ -21,6 +21,26 @@ const freshBuilder = () => ({
 ═══════════════════════════════════════════════════ */
 const CreateExam = () => {
     const navigate = useNavigate();
+
+    /* ── assignment state ── */
+    const [allStudents, setAllStudents] = useState([]);
+    const [assignedStudents, setAssignedStudents] = useState([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+
+    React.useEffect(() => {
+        const fetchStudents = async () => {
+            setLoadingStudents(true);
+            try {
+                const res = await getStudents();
+                if (res.success) setAllStudents(res.data);
+            } catch (err) {
+                console.error("Failed to load students:", err);
+            } finally {
+                setLoadingStudents(false);
+            }
+        };
+        fetchStudents();
+    }, []);
 
     /* ── exam-level state ── */
     const [examTitle, setExamTitle] = useState('');
@@ -173,10 +193,11 @@ const CreateExam = () => {
                 title: examTitle.trim(),
                 subject: examSubject.trim(),
                 duration: Number(examDuration),
+                assigned_students: assignedStudents, // Array of mobile phones
                 questions: questions.map(({ questionText, options }) => ({
                     questionText,
-                    // Strip isCorrect — we pass only text to the API
-                    options: options.map(({ text }) => ({ text })),
+                    // Pass full options array - backend now handles conversion
+                    options: options.map(({ text, isCorrect }) => ({ text, isCorrect })),
                 })),
             };
             const response = await createExam(payload);
@@ -357,6 +378,59 @@ const CreateExam = () => {
                                 />
                                 {detailErrors.duration && (
                                     <p className="ce-error-msg">⚠ {detailErrors.duration}</p>
+                                )}
+                            </div>
+
+                            {/* Student Assignment */}
+                            <div className="ce-field ce-field-full" style={{ marginTop: 15 }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    Assign to Specific Students (Optional)
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 400, opacity: 0.7 }}>(Leave empty to make it available to all students)</span>
+                                </label>
+
+                                {loadingStudents ? (
+                                    <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>Loading available students...</p>
+                                ) : (
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                        gap: 10,
+                                        maxHeight: '150px',
+                                        overflowY: 'auto',
+                                        padding: 12,
+                                        background: 'rgba(255,255,255,0.05)',
+                                        borderRadius: 8,
+                                        border: '1px solid rgba(255,255,255,0.1)'
+                                    }}>
+                                        {allStudents.map(s => (
+                                            <label key={s.id} style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 8,
+                                                fontSize: '0.85rem',
+                                                cursor: 'pointer',
+                                                padding: '4px 8px',
+                                                borderRadius: 4,
+                                                background: assignedStudents.includes(s.mobilePhone) ? 'rgba(99,102,241,0.2)' : 'transparent'
+                                            }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={assignedStudents.includes(s.mobilePhone)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setAssignedStudents(prev => [...prev, s.mobilePhone]);
+                                                        } else {
+                                                            setAssignedStudents(prev => prev.filter(m => m !== s.mobilePhone));
+                                                        }
+                                                    }}
+                                                />
+                                                {s.firstName} {s.lastName} ({s.mobilePhone})
+                                            </label>
+                                        ))}
+                                        {allStudents.length === 0 && (
+                                            <p style={{ gridColumn: '1/-1', textAlign: 'center', fontSize: '0.85rem', opacity: 0.5 }}>No students found in your subject.</p>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>

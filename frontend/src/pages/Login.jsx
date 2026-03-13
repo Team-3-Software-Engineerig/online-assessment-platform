@@ -26,12 +26,15 @@ const Login = () => {
             const data = await authService.login(formData.mobilePhone, formData.password);
 
             // authService.login already stores token, userData, and userRole in localStorage
-            if (data.role === 'admin' || data.role === 'teacher') {
-                navigate('/teacher/dashboard');
+            // Correctly redirect based on role
+            if (data.role === 'admin') {
+                navigate('/admin');
             } else if (data.role === 'manager') {
                 navigate('/manager/dashboard');
+            } else if (data.role === 'teacher') {
+                navigate('/teacher/dashboard');
             } else {
-                navigate('/instructions');
+                navigate('/student/exams');
             }
         } catch (err) {
             setError(err.message || 'Login failed. Please check your credentials.');

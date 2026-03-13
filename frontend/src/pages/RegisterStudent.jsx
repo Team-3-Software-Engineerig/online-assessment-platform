@@ -101,8 +101,8 @@ const RegisterStudent = () => {
       if (response.success && response.data) {
         localStorage.setItem('userData', JSON.stringify(response.data));
         localStorage.setItem('userRole', 'student');
-        // Redirect to instructions page on success
-        navigate('/instructions');
+        // Redirect to exam list page on success
+        navigate('/student/exams');
       } else {
         setErrors({ submit: response.message || 'Registration failed. Please try again.' });
       }

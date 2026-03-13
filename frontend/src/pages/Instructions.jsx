@@ -1,28 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isExamAssignedToStudent, getStudentId } from '../utils/assignmentUtils';
+import { isExamAssignedToStudent } from '../utils/assignmentUtils';
+import { getQuestionsForExam, startExamSession } from '../services/api';
+import { useExam } from '../context/ExamContext';
 import './Instructions.css';
 
 const Instructions = () => {
   const navigate = useNavigate();
-  const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
+  const { startExam, setLoading } = useExam();
+  const studentData = JSON.parse(localStorage.getItem('userData') || localStorage.getItem('studentData') || '{}');
 
   // Access control: check if this student is assigned to the selected exam
   const selectedExamId = localStorage.getItem('selectedExamId');
-  const studentId = getStudentId();
 
-  // Only enforce the guard when an examId is explicitly selected
   const [accessDenied, setAccessDenied] = useState(false);
+  const [errorHeader, setErrorHeader] = useState('');
 
   useEffect(() => {
-    if (selectedExamId && studentId) {
-      const allowed = isExamAssignedToStudent(selectedExamId, studentId);
-      if (!allowed) setAccessDenied(true);
+    // If no exam selected, redirect back to exam list
+    if (!selectedExamId) {
+      navigate('/student/exams');
     }
-  }, [selectedExamId, studentId]);
+  }, [selectedExamId, navigate]);
 
-  const handleStartExam = () => {
-    navigate('/exam');
+  const handleStartExam = async () => {
+    if (!selectedExamId) {
+      navigate('/student/exams');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Start Session on Backend
+      const studentId = studentData.user_id || studentData.id || studentData._id || studentData.mobile_phone; // Prefer internal ID if exists
+      const sessionRes = await startExamSession(studentId, selectedExamId);
+
+      const sessionToken = sessionRes.success ? sessionRes.data.token : null;
+
+      // 2. Fetch Questions
+      const questionsRes = await getQuestionsForExam(selectedExamId);
+
+      if (questionsRes.success && questionsRes.data) {
+        const selectedExam = JSON.parse(localStorage.getItem('selectedExam') || '{}');
+        startExam(selectedExam, questionsRes.data, sessionToken);
+        navigate('/exam');
+      } else {
+        setErrorHeader('Failed to load exam questions');
+      }
+    } catch (err) {
+      console.error("Error starting exam:", err);
+      setErrorHeader('Error starting exam: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ── Access Denied screen ────────────────────────────────────
@@ -182,6 +212,20 @@ const Instructions = () => {
             <button type="button" className="start-exam-button" onClick={handleStartExam}>
               Start Exam
             </button>
+
+            {errorHeader && (
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ padding: '12px', background: '#fee2e2', color: '#b91c1c', borderRadius: '8px', fontSize: '14px', fontWeight: '500' }}>
+                  ⚠️ {errorHeader}
+                </div>
+                <button
+                  onClick={() => navigate('/student/exams')}
+                  style={{ marginTop: '10px', width: '100%', padding: '10px', background: 'transparent', border: '2px solid #6b7280', color: '#374151', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
+                >
+                  ← Back to Exam List
+                </button>
+              </div>
+            )}
 
             <p className="instructions-note">
               By clicking "Start Exam," you confirm you've read and understood these instructions.

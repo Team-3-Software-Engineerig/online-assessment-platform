@@ -5,6 +5,10 @@ const ExamContext = createContext();
 export const useExam = () => useContext(ExamContext);
 
 export const ExamProvider = ({ children }) => {
+    const [questions, setQuestions] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [examInfo, setExamInfo] = useState(null);
+
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const [answers, setAnswers] = useState({});
     const [maxReachedPageIndex, setMaxReachedPageIndex] = useState(0);
@@ -12,7 +16,18 @@ export const ExamProvider = ({ children }) => {
     const [startTime] = useState(Date.now());
     const [endTime, setEndTime] = useState(null);
 
+    const [sessionToken, setSessionToken] = useState(null);
+
     const QUESTIONS_PER_PAGE = 5;
+
+    const startExam = (examData, questionsList, token) => {
+        setExamInfo(examData);
+        setQuestions(questionsList);
+        setSessionToken(token);
+        setCurrentPageIndex(0);
+        setAnswers({});
+        setMaxReachedPageIndex(0);
+    };
 
     const setAnswer = (questionId, value) => {
         setAnswers((prev) => ({
@@ -34,6 +49,9 @@ export const ExamProvider = ({ children }) => {
     };
 
     const value = {
+        examInfo,
+        questions,
+        sessionToken,
         currentPageIndex,
         answers,
         setAnswer,
@@ -43,6 +61,9 @@ export const ExamProvider = ({ children }) => {
         startTime,
         endTime,
         submitGlobalExam,
+        startExam,
+        loading,
+        setLoading
     };
 
     return <ExamContext.Provider value={value}>{children}</ExamContext.Provider>;

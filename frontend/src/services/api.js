@@ -1,335 +1,209 @@
 // Base API URL - use proxy in dev, or full URL from env
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-// Mock mode - set to false when backend is ready
-const USE_MOCK_API = true;
+// Helper for all API requests to handle cloning and robust error messages
+async function apiRequest(url, options = {}) {
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const token = userData.access_token || localStorage.getItem('token');
 
-// Create a new MCQ question
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(options.headers || {})
+  };
+
+  try {
+    const response = await fetch(url, { ...options, headers });
+    const responseClone = response.clone();
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (jsonError) {
+      const text = await responseClone.text();
+      // If the body is empty or invalid JSON, return the raw text or error
+      if (!response.ok) {
+        throw new Error(`Server error: ${text || response.statusText || 'Invalid response'}`);
+      }
+      return { success: true, data: text }; // Fallback for non-JSON success
+    }
+
+    if (!response.ok) {
+      let message = 'Request failed';
+      if (typeof responseData?.detail === 'string') {
+        message = responseData.detail;
+      } else if (Array.isArray(responseData?.detail)) {
+        // FastAPI validation errors are often a list of objects
+        message = responseData.detail.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+      } else if (responseData?.message) {
+        message = responseData.message;
+      } else {
+        message = `Request failed (${response.status})`;
+      }
+      throw new Error(message);
+    }
+
+    return { success: true, data: responseData, message: responseData?.message };
+  } catch (error) {
+    if (error.message.includes('Failed to fetch') || error.message.includes('connect')) {
+      throw new Error('Cannot connect to server. Please ensure the backend is running.');
+    }
+    throw error;
+  }
+}
+
+// Helper to normalize phone numbers (digits and optional leading + only)
+function normalizePhone(phone) {
+  if (!phone) return phone;
+  const cleaned = phone.toString().replace(/[^\d+]/g, '');
+  // Ensure it doesn't have multiple + or + in the middle
+  if (cleaned.startsWith('+')) {
+    return '+' + cleaned.substring(1).replace(/\+/g, '');
+  }
+  return cleaned.replace(/\+/g, '');
+}
+
+// Auth-related
+export async function login(mobilePhone, password) {
+  const apiUrl = `${API_BASE_URL}/api/auth/login`;
+  return apiRequest(apiUrl, {
+    method: 'POST',
+    body: JSON.stringify({
+      mobile_phone: normalizePhone(mobilePhone),
+      password
+    })
+  });
+}
+
+// Question management
 export async function createQuestion(payload) {
-  try {
-    // MOCK MODE: Simulate successful creation without backend
-    if (USE_MOCK_API) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const mockQuestion = {
-        id: Date.now(),
-        questionText: payload.questionText,
-        options: payload.options,
-        createdAt: new Date().toISOString(),
-      };
-
-      return {
-        success: true,
-        data: mockQuestion,
-        message: 'Question created successfully!',
-      };
-    }
-
-    // REAL API CALL (set USE_MOCK_API to false when backend is ready)
-    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/questions` : '/api/questions';
-
-    let response;
-    try {
-      response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    } catch (fetchError) {
-      throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:8000');
-    }
-
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (jsonError) {
-      const text = await response.text();
-      throw new Error(`Server error: ${text || 'Invalid response from server'}`);
-    }
-
-    if (!response.ok) {
-      const message = responseData?.detail || responseData?.message || `Failed to create question (${response.status})`;
-      throw new Error(message);
-    }
-
-    return {
-      success: true,
-      data: responseData,
-      message: responseData?.message || 'Question created successfully!',
-    };
-  } catch (error) {
-    if (error.message.includes('Cannot connect') || error.message.includes('Server error')) {
-      throw error;
-    }
-    throw new Error(error.message || 'An unexpected error occurred. Please try again.');
-  }
+  const apiUrl = `${API_BASE_URL}/api/questions`;
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(payload) });
 }
 
-// Create a full exam with multiple questions
+// Exam management
 export async function createExam(payload) {
-  try {
-    // MOCK MODE: Simulate successful creation without backend
-    if (USE_MOCK_API) {
-      await new Promise(resolve => setTimeout(resolve, 700));
-
-      const savedExam = {
-        id: Date.now(),
-        title: payload.title,
-        subject: payload.subject,
-        duration: payload.duration,
-        total_questions: payload.questions.length,
-        status: 'Active',
-        created_at: new Date().toISOString(),
-      };
-
-      // Persist to localStorage so the dashboard can show it
-      try {
-        const existing = JSON.parse(localStorage.getItem('teacher_created_exams') || '[]');
-        localStorage.setItem('teacher_created_exams', JSON.stringify([savedExam, ...existing]));
-      } catch (_) { /* localStorage blocked - non-critical */ }
-
-      return {
-        success: true,
-        data: savedExam,
-        message: `Exam "${payload.title}" created with ${payload.questions.length} question${payload.questions.length !== 1 ? 's' : ''}!`,
-      };
-    }
-
-    // REAL API CALL (set USE_MOCK_API to false when backend is ready)
-    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/exams` : '/api/exams';
-
-    let response;
-    try {
-      response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    } catch (fetchError) {
-      throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:8000');
-    }
-
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch {
-      const text = await response.text();
-      throw new Error(`Server error: ${text || 'Invalid response from server'}`);
-    }
-
-    if (!response.ok) {
-      const message = responseData?.detail || responseData?.message || `Failed to create exam (${response.status})`;
-      throw new Error(message);
-    }
-
-    return {
-      success: true,
-      data: responseData,
-      message: responseData?.message || 'Exam created successfully!',
-    };
-  } catch (error) {
-    if (error.message.includes('Cannot connect') || error.message.includes('Server error')) {
-      throw error;
-    }
-    throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+  const apiUrl = `${API_BASE_URL}/api/admin/exams/create`;
+  const normalizedPayload = { ...payload };
+  if (Array.isArray(normalizedPayload.assigned_students)) {
+    normalizedPayload.assigned_students = normalizedPayload.assigned_students.map(normalizePhone);
   }
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(normalizedPayload) });
 }
 
-// Generic registration function for all user roles
+export async function getExams() {
+  const apiUrl = `${API_BASE_URL}/api/admin/exams`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function getActiveExams() {
+  const apiUrl = `${API_BASE_URL}/api/exams/active`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function getExamDetails(examId) {
+  const apiUrl = `${API_BASE_URL}/api/exams/${examId}`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function getQuestionsForExam(examId) {
+  const apiUrl = `${API_BASE_URL}/api/exams/${examId}/questions`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+// User management
+export async function getStudents() {
+  const apiUrl = `${API_BASE_URL}/api/admin/students`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function getTeachers() {
+  const apiUrl = `${API_BASE_URL}/api/admin/teachers`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function getManagers() {
+  const apiUrl = `${API_BASE_URL}/api/admin/managers`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function adminCreateUser(payload) {
+  const apiUrl = `${API_BASE_URL}/api/admin/users/create`;
+  const normalizedPayload = { ...payload };
+  if (normalizedPayload.mobilePhone) {
+    normalizedPayload.mobilePhone = normalizePhone(normalizedPayload.mobilePhone);
+  }
+  if (normalizedPayload.mobile_phone) {
+    normalizedPayload.mobile_phone = normalizePhone(normalizedPayload.mobile_phone);
+  }
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(normalizedPayload) });
+}
+
 export async function registerUser(payload) {
-  try {
-    // Clean phone number - send only digits
-    const cleanPayload = {
-      ...payload,
-      mobilePhone: payload.mobilePhone.replace(/\D/g, ''),
-    };
-
-    // MOCK MODE: Simulate successful registration without backend
-    if (USE_MOCK_API) {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Generate mock user ID
-      const mockId = Date.now();
-
-      const mockResponse = {
-        id: mockId,
-        firstName: cleanPayload.firstName,
-        lastName: cleanPayload.lastName,
-        mobilePhone: cleanPayload.mobilePhone,
-        role: cleanPayload.role || 'student',
-        message: 'Registration successful'
-      };
-
-      return {
-        success: true,
-        data: mockResponse,
-        message: 'Registered successfully',
-      };
-    }
-
-    // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
-    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/register` : '/api/register';
-
-    let response;
-    try {
-      response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cleanPayload),
-      });
-    } catch (fetchError) {
-      // Network error - backend might not be running
-      throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:8000');
-    }
-
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (jsonError) {
-      // Response is not JSON
-      const text = await response.text();
-      throw new Error(`Server error: ${text || 'Invalid response from server'}`);
-    }
-
-    if (!response.ok) {
-      const message = responseData?.detail || responseData?.message || `Registration failed (${response.status})`;
-      const errors = responseData?.errors || {};
-      const error = new Error(message);
-      error.errors = errors;
-      throw error;
-    }
-
-    return {
-      success: true,
-      data: responseData,
-      message: responseData?.message || 'Registered successfully',
-    };
-  } catch (error) {
-    // If it's already our custom error, rethrow it
-    if (error.errors !== undefined || error.message.includes('Cannot connect') || error.message.includes('Server error')) {
-      throw error;
-    }
-    // Other errors
-    throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+  const apiUrl = `${API_BASE_URL}/api/register`;
+  const normalizedPayload = { ...payload };
+  if (normalizedPayload.mobilePhone) {
+    normalizedPayload.mobilePhone = normalizePhone(normalizedPayload.mobilePhone);
   }
+  if (normalizedPayload.mobile_phone) {
+    normalizedPayload.mobile_phone = normalizePhone(normalizedPayload.mobile_phone);
+  }
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(normalizedPayload) });
 }
 
-// Legacy function for backward compatibility
+// Legacy export for Register.jsx
 export async function registerStudent(payload) {
   return registerUser({ ...payload, role: 'student' });
 }
 
-// Get exams for teacher/admin
-export async function getExams() {
-  try {
-    // MOCK MODE: Simulate successful fetch without backend
-    if (USE_MOCK_API) {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+export async function assignExam(examId, assignedStudents) {
+  const apiUrl = `${API_BASE_URL}/api/admin/exams/${examId}/assignments`;
+  const normalizedStudents = Array.isArray(assignedStudents)
+    ? assignedStudents.map(normalizePhone)
+    : assignedStudents;
+  return apiRequest(apiUrl, {
+    method: 'PUT',
+    body: JSON.stringify({ assigned_students: normalizedStudents })
+  });
+}
 
-      // Load teacher-created exams from localStorage (saved by createExam)
-      let teacherCreatedExams = [];
-      try {
-        teacherCreatedExams = JSON.parse(localStorage.getItem('teacher_created_exams') || '[]');
-      } catch (_) { /* ignore */ }
+// Exam Session management
+export async function startExamSession(studentId, examId) {
+  const apiUrl = `${API_BASE_URL}/api/exams/start-session`;
+  return apiRequest(apiUrl, {
+    method: 'POST',
+    body: JSON.stringify({ student_id: studentId, exam_id: examId })
+  });
+}
 
-      // Default mock exams data
-      const mockExams = [
-        {
-          id: 1,
-          title: 'Math Assessment - Chapter 1',
-          subject: 'math',
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          total_questions: 25,
-          status: 'Active',
-        },
-        {
-          id: 2,
-          title: 'Math Assessment - Chapter 2',
-          subject: 'math',
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          total_questions: 20,
-          status: 'Draft',
-        },
-        {
-          id: 3,
-          title: 'Math Final Exam',
-          subject: 'math',
-          created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-          total_questions: 50,
-          status: 'Active',
-        },
-        {
-          id: 4,
-          title: 'Math Quiz - Algebra',
-          subject: 'math',
-          created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-          total_questions: 15,
-          status: 'Active',
-        },
-        {
-          id: 5,
-          title: 'Math Assessment - Geometry',
-          subject: 'math',
-          created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-          total_questions: 30,
-          status: 'Active',
-        },
-      ];
+export async function submitAnswer(sessionToken, questionId, answerText) {
+  const apiUrl = `${API_BASE_URL}/api/exams/submit-answer`;
+  return apiRequest(apiUrl, {
+    method: 'POST',
+    body: JSON.stringify({ session_token: sessionToken, question_id: questionId, answer_text: answerText })
+  });
+}
 
-      // Prepend teacher-created exams so they appear at the top of the dashboard
-      return {
-        success: true,
-        data: [...teacherCreatedExams, ...mockExams],
-        message: 'Exams fetched successfully',
-      };
-    }
+// Legacy export for backward compatibility
+export async function submitExamAnswer(sessionToken, questionId, answerText) {
+  return submitAnswer(sessionToken, questionId, answerText);
+}
 
-    // REAL API CALL (when backend is ready, set USE_MOCK_API to false)
-    const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/admin/exams` : '/api/admin/exams';
+export async function completeExamSession(sessionToken) {
+  const apiUrl = `${API_BASE_URL}/api/exams/complete-session`;
+  return apiRequest(apiUrl, {
+    method: 'POST',
+    body: JSON.stringify({ session_token: sessionToken })
+  });
+}
 
-    let response;
-    try {
-      response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (fetchError) {
-      // Network error - backend might not be running
-      throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:8000');
-    }
+// Results and Reports
+export async function getExamReport(sessionTokenOrId) {
+  const apiUrl = `${API_BASE_URL}/api/reports/session/${sessionTokenOrId}`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
 
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (jsonError) {
-      // Response is not JSON
-      const text = await response.text();
-      throw new Error(`Server error: ${text || 'Invalid response from server'}`);
-    }
-
-    if (!response.ok) {
-      const message = responseData?.detail || responseData?.message || `Failed to fetch exams (${response.status})`;
-      const error = new Error(message);
-      throw error;
-    }
-
-    return {
-      success: true,
-      data: responseData,
-      message: 'Exams fetched successfully',
-    };
-  } catch (error) {
-    // If it's already our custom error, rethrow it
-    if (error.message.includes('Cannot connect') || error.message.includes('Server error')) {
-      throw error;
-    }
-    // Other errors
-    throw new Error(error.message || 'An unexpected error occurred. Please try again.');
-  }
+export async function getStudentReports(studentId) {
+  const apiUrl = `${API_BASE_URL}/api/reports/student/${studentId}`;
+  return apiRequest(apiUrl, { method: 'GET' });
 }

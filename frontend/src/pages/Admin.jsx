@@ -1,29 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { registerUser } from '../services/api';
+import { registerUser, getStudents, getTeachers, adminCreateUser, getManagers } from '../services/api';
 import './Register.css';
 
 const Admin = () => {
-  const [managerName, setManagerName] = useState('Manager');
+  const [dashboardTitle, setDashboardTitle] = useState('Dashboard');
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     const userData = localStorage.getItem('userData');
     if (userData) {
       try {
         const user = JSON.parse(userData);
-        setManagerName(user.firstName || 'Manager');
+        console.log("Admin Dashboard - Current Role:", user.role);
+        setUserRole(user.role);
+        setDashboardTitle(user.role === 'admin' ? 'Administrator Shield' : 'Manager Dashboard');
       } catch (err) {
         // ignore
       }
     }
+    loadData();
   }, []);
 
+  const loadData = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const role = userData.role;
+
+      if (role === 'admin') {
+        const mRes = await getManagers();
+        if (mRes.success) setManagers(mRes.data);
+      }
+      const sRes = await getStudents();
+      if (sRes.success) setStudents(sRes.data);
+      const tRes = await getTeachers();
+      if (tRes.success) setTeachers(tRes.data);
+    } catch (err) {
+      console.error("Failed to load dashboard data:", err);
+    }
+  };
+
+  const [managerForm, setManagerForm] = useState({ firstName: '', lastName: '', mobilePhone: '', password: '' });
   const [studentForm, setStudentForm] = useState({ firstName: '', lastName: '', mobilePhone: '' });
   const [teacherForm, setTeacherForm] = useState({ firstName: '', lastName: '', mobilePhone: '', subject: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [managers, setManagers] = useState([]);
   const [successMsg, setSuccessMsg] = useState('');
+  const [activeTab, setActiveTab] = useState('student'); // 'student' or 'teacher'
 
   const formatPhoneNumber = (value) => {
     const phoneNumber = (value || '').replace(/\D/g, '');
@@ -38,6 +63,16 @@ const Admin = () => {
       setStudentForm((p) => ({ ...p, mobilePhone: formatPhoneNumber(value) }));
     } else {
       setStudentForm((p) => ({ ...p, [name]: value }));
+    }
+    setErrors((p) => ({ ...p, [name]: '' }));
+  };
+
+  const handleManagerChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'mobilePhone') {
+      setManagerForm((p) => ({ ...p, mobilePhone: formatPhoneNumber(value) }));
+    } else {
+      setManagerForm((p) => ({ ...p, [name]: value }));
     }
     setErrors((p) => ({ ...p, [name]: '' }));
   };
@@ -61,6 +96,35 @@ const Admin = () => {
     return newErrors;
   };
 
+  const handleAddManager = async (e) => {
+    e.preventDefault();
+    const newErrors = validate(managerForm, 'manager');
+    if (!managerForm.password || managerForm.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors);
+      return;
+    }
+    setIsSubmitting(true);
+    setSuccessMsg('');
+    try {
+      const res = await adminCreateUser({
+        ...managerForm,
+        role: 'manager',
+      });
+      if (res.success && res.data) {
+        setManagers((m) => [res.data, ...m]);
+        setManagerForm({ firstName: '', lastName: '', mobilePhone: '', password: '' });
+        setSuccessMsg('Manager added successfully');
+      }
+    } catch (err) {
+      setErrors({ submit: err.message || 'Failed to add manager' });
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setSuccessMsg(''), 2500);
+    }
+  };
+
   const handleAddStudent = async (e) => {
     e.preventDefault();
     const newErrors = validate(studentForm, 'student');
@@ -71,7 +135,7 @@ const Admin = () => {
     setIsSubmitting(true);
     setSuccessMsg('');
     try {
-      const res = await registerUser({
+      const res = await adminCreateUser({
         firstName: studentForm.firstName.trim(),
         lastName: studentForm.lastName.trim(),
         mobilePhone: studentForm.mobilePhone,
@@ -100,7 +164,7 @@ const Admin = () => {
     setIsSubmitting(true);
     setSuccessMsg('');
     try {
-      const res = await registerUser({
+      const res = await adminCreateUser({
         firstName: teacherForm.firstName.trim(),
         lastName: teacherForm.lastName.trim(),
         mobilePhone: teacherForm.mobilePhone,
@@ -135,84 +199,177 @@ const Admin = () => {
 
         <div className="registration-card" style={{ maxWidth: '760px' }}>
           <div className="registration-header">
-            <h1>Manager Dashboard</h1>
-            <p className="subtitle">Hello {managerName}, add students and teachers from here.</p>
+            <h1>{dashboardTitle}</h1>
+            <p className="subtitle">Welcome to the central command center.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            <div>
-              <h3 style={{ marginBottom: 10 }}>Add Student</h3>
-              <form onSubmit={handleAddStudent} className="registration-form" noValidate>
+          {userRole === 'admin' && (
+            <div style={{ padding: 20, background: 'rgba(255,255,255,0.05)', borderRadius: 12 }}>
+              <h3 style={{ marginBottom: 15, color: 'var(--primary)' }}>Create New Manager</h3>
+              <p style={{ marginBottom: 20, fontSize: '0.9rem', opacity: 0.8 }}>Administrators can only create managers. Managers will then handle student and teacher assignments.</p>
+              <form onSubmit={handleAddManager} className="registration-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }} noValidate>
                 <div className="form-group">
-                  <label className="form-label">First Name <span className="required">*</span></label>
-                  <input name="firstName" value={studentForm.firstName} onChange={handleStudentChange} className={`form-input ${errors.firstName ? 'error' : ''}`} placeholder="Enter first name" />
-                  {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+                  <label className="form-label">First Name</label>
+                  <input name="firstName" value={managerForm.firstName} onChange={handleManagerChange} className="form-input" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Last Name <span className="required">*</span></label>
-                  <input name="lastName" value={studentForm.lastName} onChange={handleStudentChange} className={`form-input ${errors.lastName ? 'error' : ''}`} placeholder="Enter last name" />
-                  {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+                  <label className="form-label">Last Name</label>
+                  <input name="lastName" value={managerForm.lastName} onChange={handleManagerChange} className="form-input" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Phone <span className="required">*</span></label>
-                  <input name="mobilePhone" value={studentForm.mobilePhone} onChange={handleStudentChange} className={`form-input ${errors.mobilePhone ? 'error' : ''}`} placeholder="(123) 456-7890" maxLength={14} />
-                  {errors.mobilePhone && <span className="error-message">{errors.mobilePhone}</span>}
+                  <label className="form-label">Phone</label>
+                  <input name="mobilePhone" value={managerForm.mobilePhone} onChange={handleManagerChange} className="form-input" />
                 </div>
-                {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
-                <button type="submit" className="submit-button" disabled={isSubmitting}>{isSubmitting ? 'Adding...' : 'Add Student'}</button>
+                <div className="form-group">
+                  <label className="form-label">Password</label>
+                  <input type="password" name="password" value={managerForm.password} onChange={handleManagerChange} className="form-input" />
+                </div>
+                <button type="submit" className="submit-button" disabled={isSubmitting} style={{ gridColumn: 'span 2' }}>
+                  {isSubmitting ? 'Creating...' : 'Register Manager'}
+                </button>
               </form>
 
-              {students.length > 0 && (
-                <div style={{ marginTop: 14 }}>
-                  <h4 style={{ margin: '8px 0' }}>Recently added</h4>
-                  <ul>
-                    {students.map((s) => (
-                      <li key={s.id}>{s.firstName} {s.lastName} — {s.mobilePhone}</li>
+              {managers.length > 0 && (
+                <div style={{ marginTop: 25 }}>
+                  <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>Active Managers</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 15 }}>
+                    {managers.map(m => (
+                      <div key={m.id} style={{ background: 'rgba(255,255,255,0.08)', padding: '10px 15px', borderRadius: 8 }}>
+                        <div style={{ fontWeight: '600' }}>{m.firstName} {m.lastName}</div>
+                        <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{m.mobilePhone}</div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
             </div>
+          )}
 
+          {userRole === 'manager' && (
             <div>
-              <h3 style={{ marginBottom: 10 }}>Add Teacher</h3>
-              <form onSubmit={handleAddTeacher} className="registration-form" noValidate>
-                <div className="form-group">
-                  <label className="form-label">First Name <span className="required">*</span></label>
-                  <input name="firstName" value={teacherForm.firstName} onChange={handleTeacherChange} className={`form-input ${errors.firstName ? 'error' : ''}`} placeholder="Enter first name" />
-                  {errors.firstName && <span className="error-message">{errors.firstName}</span>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Last Name <span className="required">*</span></label>
-                  <input name="lastName" value={teacherForm.lastName} onChange={handleTeacherChange} className={`form-input ${errors.lastName ? 'error' : ''}`} placeholder="Enter last name" />
-                  {errors.lastName && <span className="error-message">{errors.lastName}</span>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Phone <span className="required">*</span></label>
-                  <input name="mobilePhone" value={teacherForm.mobilePhone} onChange={handleTeacherChange} className={`form-input ${errors.mobilePhone ? 'error' : ''}`} placeholder="(123) 456-7890" maxLength={14} />
-                  {errors.mobilePhone && <span className="error-message">{errors.mobilePhone}</span>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Subject <span className="required">*</span></label>
-                  <input name="subject" value={teacherForm.subject} onChange={handleTeacherChange} className={`form-input ${errors.subject ? 'error' : ''}`} placeholder="e.g., Math" />
-                  {errors.subject && <span className="error-message">{errors.subject}</span>}
-                </div>
-                {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
-                <button type="submit" className="submit-button" disabled={isSubmitting}>{isSubmitting ? 'Adding...' : 'Add Teacher'}</button>
-              </form>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 25, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 15 }}>
+                <button
+                  onClick={() => { setActiveTab('student'); setErrors({}); }}
+                  style={{
+                    padding: '8px 20px',
+                    borderRadius: 20,
+                    border: 'none',
+                    background: activeTab === 'student' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                    color: activeTab === 'student' ? 'white' : 'inherit',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  Manage Students
+                </button>
+                <button
+                  onClick={() => { setActiveTab('teacher'); setErrors({}); }}
+                  style={{
+                    padding: '8px 20px',
+                    borderRadius: 20,
+                    border: 'none',
+                    background: activeTab === 'teacher' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                    color: activeTab === 'teacher' ? 'white' : 'inherit',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  Manage Teachers
+                </button>
+              </div>
 
-              {teachers.length > 0 && (
-                <div style={{ marginTop: 14 }}>
-                  <h4 style={{ margin: '8px 0' }}>Recently added</h4>
-                  <ul>
-                    {teachers.map((t) => (
-                      <li key={t.id}>{t.firstName} {t.lastName} — {t.mobilePhone} ({t.subject || '—'})</li>
-                    ))}
-                  </ul>
+              {activeTab === 'student' ? (
+                <div className="tab-fade-in">
+                  <h3 style={{ marginBottom: 15, color: 'var(--primary)' }}>Add New Student</h3>
+                  <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: 20 }}>Enter student details to assign them to the system. They can then self-register using their phone number.</p>
+                  <form onSubmit={handleAddStudent} className="registration-form" noValidate>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+                      <div className="form-group">
+                        <label className="form-label">First Name <span className="required">*</span></label>
+                        <input name="firstName" value={studentForm.firstName} onChange={handleStudentChange} className={`form-input ${errors.firstName ? 'error' : ''}`} placeholder="First Name" />
+                        {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Last Name <span className="required">*</span></label>
+                        <input name="lastName" value={studentForm.lastName} onChange={handleStudentChange} className={`form-input ${errors.lastName ? 'error' : ''}`} placeholder="Last Name" />
+                        {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Mobile Phone <span className="required">*</span></label>
+                      <input name="mobilePhone" value={studentForm.mobilePhone} onChange={handleStudentChange} className={`form-input ${errors.mobilePhone ? 'error' : ''}`} placeholder="(123) 456-7890" maxLength={14} />
+                      {errors.mobilePhone && <span className="error-message">{errors.mobilePhone}</span>}
+                    </div>
+                    {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
+                    <button type="submit" className="submit-button" disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Assign Student'}</button>
+                  </form>
+
+                  {students.length > 0 && (
+                    <div style={{ marginTop: 30 }}>
+                      <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 8, marginBottom: 12 }}>Assigned Students</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        {students.map((s) => (
+                          <div key={s.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 15px', borderRadius: 8 }}>
+                            <div style={{ fontWeight: '600' }}>{s.firstName} {s.lastName}</div>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{s.mobilePhone}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="tab-fade-in">
+                  <h3 style={{ marginBottom: 15, color: 'var(--primary)' }}>Add New Teacher</h3>
+                  <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: 20 }}>Register a teacher and assign their subject. They can then log in or self-register via phone.</p>
+                  <form onSubmit={handleAddTeacher} className="registration-form" noValidate>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+                      <div className="form-group">
+                        <label className="form-label">First Name <span className="required">*</span></label>
+                        <input name="firstName" value={teacherForm.firstName} onChange={handleTeacherChange} className={`form-input ${errors.firstName ? 'error' : ''}`} placeholder="First Name" />
+                        {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Last Name <span className="required">*</span></label>
+                        <input name="lastName" value={teacherForm.lastName} onChange={handleTeacherChange} className={`form-input ${errors.lastName ? 'error' : ''}`} placeholder="Last Name" />
+                        {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+                      <div className="form-group">
+                        <label className="form-label">Mobile Phone <span className="required">*</span></label>
+                        <input name="mobilePhone" value={teacherForm.mobilePhone} onChange={handleTeacherChange} className={`form-input ${errors.mobilePhone ? 'error' : ''}`} placeholder="Phone" maxLength={14} />
+                        {errors.mobilePhone && <span className="error-message">{errors.mobilePhone}</span>}
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Subject <span className="required">*</span></label>
+                        <input name="subject" value={teacherForm.subject} onChange={handleTeacherChange} className={`form-input ${errors.subject ? 'error' : ''}`} placeholder="e.g. Math" />
+                        {errors.subject && <span className="error-message">{errors.subject}</span>}
+                      </div>
+                    </div>
+                    {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
+                    <button type="submit" className="submit-button" disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Assign Teacher'}</button>
+                  </form>
+
+                  {teachers.length > 0 && (
+                    <div style={{ marginTop: 30 }}>
+                      <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 8, marginBottom: 12 }}>Assigned Teachers</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        {teachers.map((t) => (
+                          <div key={t.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 15px', borderRadius: 8 }}>
+                            <div style={{ fontWeight: '600' }}>{t.firstName} {t.lastName}</div>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{t.mobilePhone} • {t.subject}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          </div>
+          )}
         </div>
       </div>
 

@@ -1,0 +1,55 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: exam-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "localhost/test", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: exam-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-}
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+      MONGO_DATABASE: ${MONGO_DATABASE:-exam_platform}
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      ADMIN_MOBILE_PHONE: ${ADMIN_MOBILE_PHONE:-+1234567890}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}
+      ADMIN_SURNAME: ${ADMIN_SURNAME:-User}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-admin-password}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: exam-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

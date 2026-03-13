@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 from app.db.db import connect_to_mongo, close_mongo_connection
 from app.api.routes import auth, exam, admin, registration, report
+from app.core.config import settings
 
 
 @asynccontextmanager
@@ -19,6 +21,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Online Assessment Platform", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include routers
 app.include_router(auth.router)

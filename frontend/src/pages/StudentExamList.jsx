@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getExams } from '../services/api';
-import { getStudentId, getAssignedExamIds } from '../utils/assignmentUtils';
+import { getActiveExams } from '../services/api';
 import './StudentExamList.css';
 
 const StudentExamList = () => {
@@ -10,22 +9,16 @@ const StudentExamList = () => {
     const [loading, setLoading] = useState(true);
 
     // Student info
-    const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
-    const firstName = studentData.firstName || 'Student';
-    const studentId = getStudentId();
+    const studentData = JSON.parse(localStorage.getItem('userData') || localStorage.getItem('studentData') || '{}');
+    const firstName = studentData.firstName || studentData.name || 'Student';
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
             try {
-                const res = await getExams();
+                const res = await getActiveExams();
                 if (res.success && res.data) {
-                    // Only show exams this student is assigned to
-                    const assignedIds = getAssignedExamIds(studentId);
-                    const assigned = assignedIds.length > 0
-                        ? res.data.filter((e) => assignedIds.includes(String(e.id)))
-                        : [];
-                    setExams(assigned);
+                    setExams(res.data);
                 }
             } catch (err) {
                 console.error('Failed to load exams:', err);
@@ -34,7 +27,7 @@ const StudentExamList = () => {
             }
         };
         load();
-    }, [studentId]);
+    }, []);
 
     const formatDate = (ds) => {
         if (!ds) return '';
@@ -103,10 +96,11 @@ const StudentExamList = () => {
                                         </div>
                                     </div>
                                     <button
-                                        className="sel-start-btn"
-                                        onClick={() => handleStart(exam)}
+                                        className={`sel-start-btn ${exam.is_completed ? 'completed' : ''}`}
+                                        onClick={() => !exam.is_completed && handleStart(exam)}
+                                        disabled={exam.is_completed}
                                     >
-                                        → Start Exam
+                                        {exam.is_completed ? '✓ Exam Completed' : '→ Start Exam'}
                                     </button>
                                 </div>
                             ))}

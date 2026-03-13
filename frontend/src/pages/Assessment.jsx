@@ -3,44 +3,51 @@ import { useExam } from '../context/ExamContext';
 import { User, Timer, BarChart2, AlertTriangle } from 'lucide-react';
 import ExamTimer from '../components/ExamTimer';
 import { useNavigate } from 'react-router-dom';
+import { submitExamAnswer, completeExamSession } from '../services/api';
 import '../styles/exam.css';
 
-const DUMMY_QUESTIONS = [
-    { id: 1, text: "What is 5 + 7?", type: "mcq", options: ["10", "11", "12", "13"] },
-    { id: 2, text: "Identify the noun in this sentence: 'The cat sleeps.'", type: "mcq", options: ["The", "cat", "sleeps", "."] },
-    { id: 3, text: "Solve for x: 2x = 10", type: "short", label: "Answer:" },
-    { id: 4, text: "Which color is primary?", type: "mcq", options: ["Green", "Purple", "Red", "Orange"] },
-    { id: 5, text: "Write the past tense of 'run'.", type: "short", label: "Answer:" },
-    { id: 6, text: "What is 15 - 6?", type: "mcq", options: ["7", "8", "9", "10"] },
-    { id: 7, text: "Which word is an adjective? 'The red ball.'", type: "mcq", options: ["The", "red", "ball", "None"] },
-    { id: 8, text: "Capital of France?", type: "short", label: "City:" },
-    { id: 9, text: "3 * 4 = ?", type: "mcq", options: ["7", "12", "14", "9"] },
-    { id: 10, text: "Antonym of 'Hot'?", type: "short", label: "Word:" },
-    { id: 11, text: "What is 20 / 5?", type: "mcq", options: ["2", "4", "5", "10"] },
-    { id: 12, text: "Select the verb: 'He runs fast.'", type: "mcq", options: ["He", "runs", "fast", "."] },
-];
-
 const Assessment = () => {
-    const { currentPageIndex, answers, setAnswer, goNextPage, QUESTIONS_PER_PAGE, submitGlobalExam } = useExam();
+    const { examInfo, questions, currentPageIndex, answers, setAnswer, goNextPage, QUESTIONS_PER_PAGE, submitGlobalExam, loading, sessionToken } = useExam();
     const navigate = useNavigate();
 
     const startIndex = currentPageIndex * QUESTIONS_PER_PAGE;
-    const currentQuestions = DUMMY_QUESTIONS.slice(startIndex, startIndex + QUESTIONS_PER_PAGE);
+    const currentQuestions = questions.slice(startIndex, startIndex + QUESTIONS_PER_PAGE);
 
     // Placeholder data for the info panel
-    const studentName = JSON.parse(localStorage.getItem('studentData') || '{}').firstName || 'Student';
-    const totalQuestions = DUMMY_QUESTIONS.length;
+    const studentInfo = JSON.parse(localStorage.getItem('userData') || localStorage.getItem('studentData') || '{}');
+    const studentName = studentInfo.firstName || studentInfo.name || 'Student';
+    const totalQuestions = questions.length;
     const answeredCount = Object.keys(answers).filter(key => {
         // Only count answers for valid questions
-        return DUMMY_QUESTIONS.some(q => q.id === parseInt(key));
+        return questions.some(q => q.id === key || q._id === key);
     }).length;
 
-    const handleOptionChange = (questionId, value) => {
+    if (loading) {
+        return <div className="exam-layout"><div className="exam-container"><h1>Loading Assessment...</h1></div></div>;
+    }
+
+    const handleOptionChange = async (questionId, value) => {
         setAnswer(questionId, value);
+        if (sessionToken) {
+            try {
+                await submitExamAnswer(sessionToken, questionId, value);
+            } catch (err) {
+                console.error("Failed to sync answer:", err);
+            }
+        }
     };
 
-    const handleTextChange = (questionId, e) => {
-        setAnswer(questionId, e.target.value);
+    const handleTextChange = async (questionId, e) => {
+        const val = e.target.value;
+        setAnswer(questionId, val);
+        // We might want to debounce this in a real app
+        if (sessionToken) {
+            try {
+                await submitExamAnswer(sessionToken, questionId, val);
+            } catch (err) {
+                console.error("Failed to sync answer:", err);
+            }
+        }
     };
 
     const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE);
@@ -66,9 +73,16 @@ const Assessment = () => {
         setShowWarning(false);
     };
 
-    const submitExam = () => {
+    const submitExam = async () => {
+        if (sessionToken) {
+            try {
+                await completeExamSession(sessionToken);
+            } catch (err) {
+                console.error("Failed to complete session on backend:", err);
+            }
+        }
         submitGlobalExam();
-        navigate('/result', { state: { totalQuestions, answeredCount } });
+        navigate('/result', { state: { totalQuestions, answeredCount, sessionToken } });
     };
 
     // If we ran out of questions, show a simple finish message
@@ -118,7 +132,7 @@ const Assessment = () => {
                             <div className="chip-content">
                                 <span className="chip-label">Time Remaining</span>
                                 <div className="chip-value timer-wrapper">
-                                    <ExamTimer initialSeconds={45 * 60} onExpire={submitExam} />
+                                    <ExamTimer initialSeconds={(examInfo?.duration_minutes || examInfo?.duration || 45) * 60} onExpire={submitExam} />
                                 </div>
                             </div>
                         </div>
@@ -135,42 +149,48 @@ const Assessment = () => {
                 </div>
 
                 <div className="questions-list">
-                    {currentQuestions.map((q, index) => (
-                        <div key={q.id} className="question-card">
-                            <div className="question-text">
-                                {startIndex + index + 1}. {q.text}
+                    {currentQuestions.map((q, index) => {
+                        const qId = q._id || q.id;
+                        const options = q.options || {};
+                        const isMcq = q.type?.toLowerCase() === 'mcq' || !!q.options;
+
+                        return (
+                            <div key={qId} className="question-card">
+                                <div className="question-text">
+                                    {startIndex + index + 1}. {q.statement || q.text}
+                                </div>
+
+                                {isMcq && (
+                                    <div className="question-options">
+                                        {Object.entries(options).map(([key, text]) => (
+                                            <label key={key} className="option-label">
+                                                <input
+                                                    type="radio"
+                                                    name={`q-${qId}`}
+                                                    value={key}
+                                                    checked={answers[qId] === key}
+                                                    onChange={() => handleOptionChange(qId, key)}
+                                                />
+                                                <span className="option-letter">{key.toUpperCase()}.</span> {text}
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {!isMcq && (
+                                    <div className="question-input">
+                                        <input
+                                            type="text"
+                                            className="short-answer-input"
+                                            placeholder="Type your answer here..."
+                                            value={answers[qId] || ''}
+                                            onChange={(e) => handleTextChange(qId, e)}
+                                        />
+                                    </div>
+                                )}
                             </div>
-
-                            {q.type === 'mcq' && (
-                                <div className="question-options">
-                                    {q.options.map((option) => (
-                                        <label key={option} className="option-label">
-                                            <input
-                                                type="radio"
-                                                name={`q-${q.id}`}
-                                                value={option}
-                                                checked={answers[q.id] === option}
-                                                onChange={() => handleOptionChange(q.id, option)}
-                                            />
-                                            {option}
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-
-                            {q.type === 'short' && (
-                                <div className="question-input">
-                                    <input
-                                        type="text"
-                                        className="short-answer-input"
-                                        placeholder={q.label}
-                                        value={answers[q.id] || ''}
-                                        onChange={(e) => handleTextChange(q.id, e)}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 <div className="navigation-area">

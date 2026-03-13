@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getExams } from '../services/api';
-import { seedStudentsIfMissing, loadAssignments } from '../utils/assignmentUtils';
 import AssignExamModal from '../components/AssignExamModal';
 import './TeacherDashboard.css';
 
@@ -12,6 +11,7 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [teacherName, setTeacherName] = useState('');
+  const [teacherId, setTeacherId] = useState(null);
   const [teacherSubject, setTeacherSubject] = useState(null);
 
   // Assignment modal state
@@ -20,15 +20,13 @@ const TeacherDashboard = () => {
   const [toastMsg, setToastMsg] = useState('');
 
   useEffect(() => {
-    // Seed mock students on first run
-    seedStudentsIfMissing();
-
     // Get teacher info from localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
       try {
         const user = JSON.parse(userData);
         setTeacherName(user.firstName || 'Teacher');
+        setTeacherId(user.id || user._id || null);
         setTeacherSubject(user.subject || user.teacherSubject || null);
       } catch (err) {
         console.error('Error parsing user data:', err);
@@ -41,6 +39,9 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (teacherSubject) {
       const filtered = exams.filter(exam => {
+        // ALWAYS show exams created by this teacher
+        if (teacherId && String(exam.creator_id) === String(teacherId)) return true;
+
         const examSubject = exam.subject?.toLowerCase() ||
           exam.subject_type?.toLowerCase() ||
           exam.title?.toLowerCase() || '';
@@ -50,7 +51,7 @@ const TeacherDashboard = () => {
     } else {
       setFilteredExams(exams);
     }
-  }, [exams, teacherSubject]);
+  }, [exams, teacherSubject, teacherId]);
 
   const fetchExams = async () => {
     try {
@@ -82,8 +83,8 @@ const TeacherDashboard = () => {
     setAssignModalExam(null);
     const count = studentIds.length;
     showToast(`✅ Exam assigned to ${count} student${count !== 1 ? 's' : ''} successfully!`);
-    // Trigger re-render to refresh assignment counts
-    setExams((prev) => [...prev]);
+    // Refresh exams from server to get updated assignment counts
+    fetchExams();
   };
 
   const showToast = (msg) => {
@@ -116,9 +117,8 @@ const TeacherDashboard = () => {
   };
 
   // Assignment count for a given exam
-  const getAssignedCount = (examId) => {
-    const map = loadAssignments();
-    return (map[String(examId)] || []).length;
+  const getAssignedCount = (exam) => {
+    return (exam.assigned_students || []).length;
   };
 
   const displayExams = teacherSubject ? filteredExams : exams;
@@ -149,12 +149,14 @@ const TeacherDashboard = () => {
               </div>
             )}
           </div>
-          <button className="create-new-btn" onClick={handleCreateNew}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Create New Exam
-          </button>
+          <div className="header-actions">
+            <button className="create-new-btn" onClick={handleCreateNew}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Create New Exam
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -205,7 +207,7 @@ const TeacherDashboard = () => {
               <div className="exams-grid">
                 {displayExams.map((exam) => {
                   const subjectBadge = getSubjectBadge(exam);
-                  const assignedCount = getAssignedCount(exam.id);
+                  const assignedCount = getAssignedCount(exam);
                   return (
                     <div key={exam.id} className="exam-card">
                       <div className="exam-card-header">
@@ -246,14 +248,28 @@ const TeacherDashboard = () => {
                                 <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                               </svg>
-                              <span>{assignedCount} student{assignedCount !== 1 ? 's' : ''} assigned</span>
+                              <span>{assignedCount} Student{assignedCount !== 1 ? 's' : ''} Assigned</span>
+                            </div>
+                          )}
+                          {exam.submission_count > 0 && (
+                            <div className="exam-detail-item exam-submissions-badge">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 11l3 3L22 4" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                                {exam.submission_count} Submitted
+                              </span>
                             </div>
                           )}
                         </div>
                       </div>
                       <div className="exam-card-footer card-footer-actions">
-                        <button className="view-exam-btn">
-                          View Details
+                        <button
+                          className="view-exam-btn"
+                          onClick={() => navigate(`/submissions?exam=${exam.id}`)}
+                        >
+                          {exam.submission_count > 0 ? '📈 View Results' : '👁 Submissions'}
                         </button>
                         <button
                           className="assign-exam-btn"

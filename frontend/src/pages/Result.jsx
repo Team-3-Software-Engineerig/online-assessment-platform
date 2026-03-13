@@ -2,20 +2,48 @@
 import React from 'react';
 import { useExam } from '../context/ExamContext';
 import jsPDF from 'jspdf';
-import { useLocation } from 'react-router-dom';
-import { CheckCircle, Download, Clock, Calendar, FileText, ShieldCheck } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CheckCircle, Download, Clock, Calendar, FileText, ShieldCheck, Award } from 'lucide-react';
+import { getExamReport } from '../services/api';
 import '../styles/exam.css';
 
 const Result = () => {
     const { startTime, endTime } = useExam();
     const location = useLocation();
-    const { totalQuestions, answeredCount } = location.state || { totalQuestions: 0, answeredCount: 0 };
+    const navigate = useNavigate();
+    const { totalQuestions: locTotal, answeredCount: locAnswered, sessionToken } = location.state || {};
+
+    const [report, setReport] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchReport = async () => {
+            if (!sessionToken) {
+                setLoading(false);
+                return;
+            }
+            try {
+                const res = await getExamReport(sessionToken);
+                if (res.success) setReport(res.data);
+            } catch (err) {
+                console.error("Failed to fetch report:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchReport();
+    }, [sessionToken]);
+
+    const totalQuestions = report?.total || locTotal || 0;
+    const answeredCount = locAnswered || 0;
+    const score = report?.score ?? null;
+    const percentage = report?.percentage ?? null;
 
     // Retrieve student data
-    const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
-    const studentName = `${studentData.firstName || 'Student'} ${studentData.lastName || ''}`.trim();
+    const studentData = JSON.parse(localStorage.getItem('userData') || localStorage.getItem('studentData') || '{}');
+    const studentName = `${studentData.firstName || studentData.name || 'Student'} ${studentData.lastName || studentData.surname || ''}`.trim();
+    const studentId = studentData.id || studentData._id || 'N/A';
     const studentPhone = studentData.mobilePhone || 'N/A';
-    const studentId = `STU-${Math.floor(1000 + Math.random() * 9000)}`; // Placeholder ID
 
     // Format dates
     const startDate = new Date(startTime);
@@ -238,6 +266,25 @@ const Result = () => {
                             </div>
                         </div>
 
+                        {score !== null && (
+                            <div className="stat-item" style={{ background: '#eef2ff', padding: '16px', borderRadius: '12px', border: '1px solid #c7d2fe', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', color: '#4338ca', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase' }}>
+                                        <Award size={14} style={{ marginRight: '4px' }} /> Your Score
+                                    </div>
+                                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#3730a3' }}>
+                                        {score} / {totalQuestions}
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ color: '#6366f1', fontSize: '12px', fontWeight: '600' }}>PERCENTAGE</div>
+                                    <div style={{ fontSize: '20px', fontWeight: '700', color: '#4338ca' }}>
+                                        {Math.round(percentage)}%
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="stat-item" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase' }}>
@@ -258,17 +305,22 @@ const Result = () => {
                         </div>
                     </div>
 
-                    <button onClick={downloadPDF} className="btn-primary" style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        padding: '16px',
-                        background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)'
-                    }}>
-                        <Download size={20} /> Download Confirmation Receipt
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button onClick={() => navigate('/student/exams')} className="btn-secondary" style={{ flex: 1, padding: '14px' }}>
+                            Back to My Exams
+                        </button>
+                        <button onClick={downloadPDF} className="btn-primary" style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            padding: '14px',
+                            background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)'
+                        }}>
+                            <Download size={20} /> Receipt
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

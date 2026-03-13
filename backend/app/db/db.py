@@ -20,7 +20,8 @@ async def connect_to_mongo():
     client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1000)
     
     # Wait for MongoDB to be ready (with retries)
-    max_retries = 2
+    # Give MongoDB enough time to be ready in containerized deploys.
+    max_retries = 15
     for attempt in range(max_retries):
         try:
             # Test connection
@@ -35,7 +36,7 @@ async def connect_to_mongo():
         except Exception as exc:
             print(f"Attempt {attempt + 1}: Failed to connect to MongoDB: {exc}")
             if attempt < max_retries - 1:
-                await asyncio.sleep(1)
+                await asyncio.sleep(2)
                 
     # Fallback to Mock
     print(f"WARNING: Falling back to in-memory Mock MongoDB (mongomock). Persistence active at {MOCK_DB_FILE}")

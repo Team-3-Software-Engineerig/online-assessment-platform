@@ -260,3 +260,85 @@ Dashboard for teachers & managers
 📌 Project Context
 
 This system is implemented as a mini project / prototype, serving as a rehearsal for a larger semester-scale academic project.
+
+## Run Locally (Development)
+
+### Backend
+
+From `backend/`:
+
+1. Install dependencies:
+   - `python -m venv venv`
+   - `source venv/bin/activate`
+   - `pip install -r requirements.txt`
+2. Start API:
+   - `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
+
+### Frontend
+
+From `frontend/`:
+
+1. Install dependencies:
+   - `npm install`
+2. Start app:
+   - `npm run dev`
+
+The frontend proxies `/api` requests to `http://localhost:8000` in development.
+
+## Deployment (Docker Compose)
+
+This repository includes a production-ready `docker-compose.yml` for frontend, backend, and MongoDB.
+
+1. Copy environment template:
+   - `cp .env.example .env`
+2. Update secrets in `.env` (especially `SECRET_KEY` and `ADMIN_PASSWORD`).
+3. Start services:
+   - `docker compose up -d --build`
+4. Open app:
+   - `http://localhost:8080`
+5. Check API health:
+   - `http://localhost:8000/health`
+
+To stop services:
+
+- `docker compose down`
+
+## Deployment (Fly.io)
+
+This repo includes ready Fly configs for separate backend and frontend apps:
+
+- `fly.backend.toml`
+- `fly.frontend.toml`
+
+### 1) Create apps (once)
+
+- `fly apps create <your-backend-app-name>`
+- `fly apps create <your-frontend-app-name>`
+
+Then update `app = "..."` in both Fly config files.
+
+### 2) Backend secrets/env
+
+Set backend secrets (use managed MongoDB like MongoDB Atlas in production):
+
+- `fly secrets set -c fly.backend.toml MONGO_HOST=<mongo-host> MONGO_PORT=27017 MONGO_DATABASE=exam_platform`
+- `fly secrets set -c fly.backend.toml MONGO_ROOT_USERNAME=<mongo-user> MONGO_ROOT_PASSWORD=<mongo-password>`
+- `fly secrets set -c fly.backend.toml SECRET_KEY=<strong-secret> ACCESS_TOKEN_EXPIRE_MINUTES=60`
+- `fly secrets set -c fly.backend.toml ADMIN_MOBILE_PHONE=+1234567890 ADMIN_NAME=Admin ADMIN_SURNAME=User ADMIN_PASSWORD=<admin-password>`
+- `fly secrets set -c fly.backend.toml CORS_ORIGINS=https://<your-frontend-app-name>.fly.dev`
+
+### 3) Frontend API URL
+
+Set your backend URL in `fly.frontend.toml`:
+
+- `VITE_API_URL = "https://<your-backend-app-name>.fly.dev"`
+
+### 4) Deploy
+
+- `fly deploy -c fly.backend.toml`
+- `fly deploy -c fly.frontend.toml`
+
+### 5) Verify
+
+- Backend health: `https://<your-backend-app-name>.fly.dev/health`
+- Frontend app: `https://<your-frontend-app-name>.fly.dev`

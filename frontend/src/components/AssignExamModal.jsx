@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { loadStudents, loadAssignments, saveAssignments } from '../utils/assignmentUtils';
+import { getStudents, assignExam } from '../services/api';
 import './AssignExamModal.css';
 
 /**
@@ -17,13 +17,28 @@ const AssignExamModal = ({ exam, onClose, onSaved }) => {
 
     // ── Load students + pre-check already-assigned ─────────────
     useEffect(() => {
-        const allStudents = loadStudents();
-        const assignments = loadAssignments();
-        const alreadyIds = new Set(
-            (assignments[String(exam.id)] || []).map(String)
-        );
-        setStudents(allStudents);
-        setSelected(alreadyIds);
+        const fetchData = async () => {
+            let allStudents = [];
+
+            try {
+                const res = await getStudents();
+                if (res.success && Array.isArray(res.data)) {
+                    allStudents = res.data;
+                }
+            } catch (err) {
+                console.error("Failed to fetch students from API:", err);
+            }
+
+            const alreadyPhones = new Set(
+                (exam.assigned_students || []).map(String)
+            );
+
+            setStudents(allStudents);
+            setSelected(alreadyPhones);
+        };
+
+        fetchData();
+
         // Focus search on open
         setTimeout(() => searchRef.current?.focus(), 50);
     }, [exam.id]);
@@ -40,23 +55,24 @@ const AssignExamModal = ({ exam, onClose, onSaved }) => {
     const filtered = q
         ? students.filter(
             (s) =>
-                s.name.toLowerCase().includes(q) ||
-                s.email.toLowerCase().includes(q)
+                (s.name || '').toLowerCase().includes(q) ||
+                (s.email || '').toLowerCase().includes(q) ||
+                (s.mobilePhone || '').includes(q)
         )
         : students;
 
     // ── Select-all state ────────────────────────────────────────
-    const filteredIds = filtered.map((s) => s.id);
-    const allChecked = filteredIds.length > 0 && filteredIds.every((id) => selected.has(id));
-    const someChecked = filteredIds.some((id) => selected.has(id)) && !allChecked;
+    const filteredPhones = filtered.map((s) => s.mobilePhone || s.mobile_phone || s.id);
+    const allChecked = filteredPhones.length > 0 && filteredPhones.every((p) => selected.has(p));
+    const someChecked = filteredPhones.some((p) => selected.has(p)) && !allChecked;
 
     const handleSelectAll = () => {
         setSelected((prev) => {
             const next = new Set(prev);
             if (allChecked) {
-                filteredIds.forEach((id) => next.delete(id));
+                filteredPhones.forEach((p) => next.delete(p));
             } else {
-                filteredIds.forEach((id) => next.add(id));
+                filteredPhones.forEach((p) => next.add(p));
             }
             return next;
         });
@@ -71,26 +87,36 @@ const AssignExamModal = ({ exam, onClose, onSaved }) => {
     };
 
     // ── Save ────────────────────────────────────────────────────
-    const handleAssign = () => {
-        const assignments = loadAssignments();
-        assignments[String(exam.id)] = [...selected];
-        saveAssignments(assignments);
-        onSaved([...selected]);
+    const [isSaving, setIsSaving] = useState(false);
+    const handleAssign = async () => {
+        try {
+            setIsSaving(true);
+            const phones = [...selected];
+            const res = await assignExam(exam.id, phones);
+            if (res.success) {
+                onSaved(phones);
+            }
+        } catch (err) {
+            console.error("Failed to assign exam:", err);
+            alert("Error: " + err.message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // ── Avatar colour (deterministic) ───────────────────────────
-    const avatarColor = (id) => {
-        const n = parseInt(id.replace(/\D/g, ''), 10) || 0;
+    const avatarColor = (phone) => {
+        const n = parseInt((phone || '').replace(/\D/g, ''), 10) || 0;
         return n % 5;
     };
 
     const initials = (name) =>
-        name
+        (name || 'U')
             .split(' ')
             .slice(0, 2)
-            .map((w) => w[0])
+            .map((w) => w[0] || '')
             .join('')
-            .toUpperCase();
+            .toUpperCase() || 'U';
 
     return (
         <div className="aem-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -157,33 +183,35 @@ const AssignExamModal = ({ exam, onClose, onSaved }) => {
                         </div>
                     ) : (
                         filtered.map((student) => {
-                            const isSelected = selected.has(student.id);
+                            const studentPhone = student.mobilePhone || student.mobile_phone || student.id;
+                            const isSelected = selected.has(studentPhone);
+                            const sId = student.id || student._id || studentPhone;
                             return (
                                 <div
-                                    key={student.id}
+                                    key={sId}
                                     className={`aem-student-row${isSelected ? ' aem-selected' : ''}`}
-                                    onClick={() => handleToggle(student.id)}
+                                    onClick={() => handleToggle(studentPhone)}
                                 >
                                     <input
                                         className="aem-checkbox"
                                         type="checkbox"
                                         checked={isSelected}
-                                        onChange={() => handleToggle(student.id)}
+                                        onChange={() => handleToggle(studentPhone)}
                                         onClick={(e) => e.stopPropagation()}
-                                        id={`aem-s-${student.id}`}
+                                        id={`aem-s-${sId}`}
                                     />
                                     <div
                                         className="aem-avatar"
-                                        data-color={avatarColor(student.id)}
+                                        data-color={avatarColor(studentPhone)}
                                     >
-                                        {initials(student.name)}
+                                        {initials(student.name || student.firstName)}
                                     </div>
                                     <div className="aem-student-info">
-                                        <div className="aem-student-name">{student.name}</div>
-                                        <div className="aem-student-email">{student.email}</div>
+                                        <div className="aem-student-name">{student.name || `${student.firstName} ${student.lastName}`}</div>
+                                        <div className="aem-student-email">{student.email || student.mobilePhone}</div>
                                     </div>
                                     <div className="aem-section-badge">
-                                        Gr.{student.grade} – {student.section}
+                                        {student.grade ? `Gr.${student.grade}` : 'Student'} {student.section ? `– ${student.section}` : ''}
                                     </div>
                                 </div>
                             );
@@ -202,9 +230,9 @@ const AssignExamModal = ({ exam, onClose, onSaved }) => {
                     <button
                         className="aem-assign-btn"
                         onClick={handleAssign}
-                        disabled={selected.size === 0}
+                        disabled={selected.size === 0 || isSaving}
                     >
-                        ✓ Assign Exam
+                        {isSaving ? 'Saving...' : '✓ Assign Exam'}
                     </button>
                 </div>
             </div>
