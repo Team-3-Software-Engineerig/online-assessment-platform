@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser } from '../services/api';
+import { requestRegistration } from '../services/api';
 import './Register.css';
 
 const RegisterManager = () => {
@@ -9,9 +9,13 @@ const RegisterManager = () => {
     firstName: '',
     lastName: '',
     mobilePhone: '',
+    school: '',
+    emergencyContact: '',
+    email: '',
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const validateForm = () => {
     const newErrors = {};
@@ -29,11 +33,34 @@ const RegisterManager = () => {
     }
 
     if (!formData.mobilePhone.trim()) {
-      newErrors.mobilePhone = 'Mobile Phone Number is required';
+      newErrors.mobilePhone = 'Phone is required';
     } else {
       const phoneDigits = formData.mobilePhone.replace(/\D/g, '');
       if (phoneDigits.length < 10) {
         newErrors.mobilePhone = 'Please enter a valid mobile phone number';
+      }
+    }
+
+    if (!formData.school.trim()) {
+      newErrors.school = 'School is required';
+    } else if (formData.school.trim().length < 2) {
+      newErrors.school = 'School must be at least 2 characters';
+    }
+
+    if (!formData.emergencyContact.trim()) {
+      newErrors.emergencyContact = 'Emergency contact is required';
+    } else {
+      const digits = formData.emergencyContact.replace(/\D/g, '');
+      if (digits.length < 10) {
+        newErrors.emergencyContact = 'Please enter a valid phone number';
+      }
+    }
+
+    if (formData.email.trim()) {
+      const email = formData.email.trim();
+      const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
+      if (!isEmailValid) {
+        newErrors.email = 'Please enter a valid email address';
       }
     }
 
@@ -89,20 +116,22 @@ const RegisterManager = () => {
 
     setIsSubmitting(true);
     setErrors({});
+    setSuccessMsg('');
 
     try {
-      const response = await registerUser({
+      const response = await requestRegistration({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         mobilePhone: formData.mobilePhone,
+        school: formData.school.trim(),
+        emergencyContact: formData.emergencyContact,
+        email: formData.email.trim() ? formData.email.trim() : undefined,
         role: 'manager',
       });
 
       if (response.success && response.data) {
-        localStorage.setItem('userData', JSON.stringify(response.data));
-        localStorage.setItem('userRole', 'manager');
-        // Redirect to manager dashboard or admin page
-        navigate('/admin');
+        setSuccessMsg('Registration request sent to admin. Please wait for approval, then login.');
+        setFormData({ firstName: '', lastName: '', mobilePhone: '', school: '', emergencyContact: '', email: '' });
       } else {
         setErrors({ submit: response.message || 'Registration failed. Please try again.' });
       }
@@ -177,7 +206,7 @@ const RegisterManager = () => {
 
             <div className="form-group">
               <label htmlFor="mobilePhone" className="form-label">
-                Mobile Phone Number <span className="required">*</span>
+                Phone <span className="required">*</span>
               </label>
               <input
                 type="tel"
@@ -194,14 +223,73 @@ const RegisterManager = () => {
               {errors.mobilePhone && <span className="error-message">{errors.mobilePhone}</span>}
             </div>
 
+            <div className="form-group">
+              <label htmlFor="school" className="form-label">
+                School <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="school"
+                name="school"
+                value={formData.school}
+                onChange={handleChange}
+                className={`form-input ${errors.school ? 'error' : ''}`}
+                placeholder="Enter your school"
+                autoComplete="organization"
+                disabled={isSubmitting}
+              />
+              {errors.school && <span className="error-message">{errors.school}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="emergencyContact" className="form-label">
+                Emergency contact (parent) <span className="required">*</span>
+              </label>
+              <input
+                type="tel"
+                id="emergencyContact"
+                name="emergencyContact"
+                value={formData.emergencyContact}
+                onChange={handleChange}
+                className={`form-input ${errors.emergencyContact ? 'error' : ''}`}
+                placeholder="(123) 456-7890"
+                autoComplete="tel"
+                maxLength="20"
+                disabled={isSubmitting}
+              />
+              {errors.emergencyContact && (
+                <span className="error-message">{errors.emergencyContact}</span>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">
+                Email <span style={{ fontWeight: 600, color: 'var(--primary)' }}>(optional)</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`form-input ${errors.email ? 'error' : ''}`}
+                placeholder="Enter your email (optional)"
+                autoComplete="email"
+                disabled={isSubmitting}
+              />
+              {errors.email && <span className="error-message">{errors.email}</span>}
+            </div>
+
             {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
+            {successMsg && <div style={{ color: '#22c55e', marginBottom: 10 }}>{successMsg}</div>}
 
             <button type="submit" className="submit-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Registering...' : 'Complete Registration'}
+              {isSubmitting ? 'Sending Request...' : 'Send Registration Request'}
             </button>
 
             <p className="form-note">
-              <span className="required">*</span> All fields are required
+              All required fields are required. Email is optional. Already registered?{' '}
+              <span style={{ color: 'var(--primary)', cursor: 'pointer' }} onClick={() => navigate('/login')}>Go to Login</span>
             </p>
           </form>
         </div>

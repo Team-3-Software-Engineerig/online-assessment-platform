@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { registerUser, getStudents, getTeachers, adminCreateUser, getManagers } from '../services/api';
+import {
+  getStudents,
+  getTeachers,
+  adminCreateUser,
+  getManagers,
+  adminDeleteUser,
+  getRegistrationRequests,
+  approveRegistrationRequest,
+  rejectRegistrationRequest
+} from '../services/api';
 import './Register.css';
 
 const Admin = () => {
@@ -11,9 +20,10 @@ const Admin = () => {
     if (userData) {
       try {
         const user = JSON.parse(userData);
-        console.log("Admin Dashboard - Current Role:", user.role);
-        setUserRole(user.role);
-        setDashboardTitle(user.role === 'admin' ? 'Administrator Shield' : 'Manager Dashboard');
+        const resolvedRole = user.role || localStorage.getItem('userRole') || '';
+        console.log("Admin Dashboard - Current Role:", resolvedRole);
+        setUserRole(resolvedRole);
+        setDashboardTitle(resolvedRole === 'admin' ? 'Administrator Shield' : 'Manager Dashboard');
       } catch (err) {
         // ignore
       }
@@ -22,31 +32,62 @@ const Admin = () => {
   }, []);
 
   const loadData = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const role = userData.role;
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const role = userData.role || localStorage.getItem('userRole') || '';
 
-      if (role === 'admin') {
-        const mRes = await getManagers();
-        if (mRes.success) setManagers(mRes.data);
-      }
-      const sRes = await getStudents();
-      if (sRes.success) setStudents(sRes.data);
-      const tRes = await getTeachers();
-      if (tRes.success) setTeachers(tRes.data);
-    } catch (err) {
-      console.error("Failed to load dashboard data:", err);
+    const [managersResult, studentsResult, teachersResult, requestsResult] = await Promise.allSettled([
+      role === 'admin' ? getManagers() : Promise.resolve({ success: true, data: [] }),
+      getStudents(),
+      getTeachers(),
+      role === 'admin' ? getRegistrationRequests() : Promise.resolve({ success: true, data: [] }),
+    ]);
+
+    if (managersResult.status === 'fulfilled' && managersResult.value?.success) {
+      setManagers(managersResult.value.data || []);
+    }
+    if (studentsResult.status === 'fulfilled' && studentsResult.value?.success) {
+      setStudents(studentsResult.value.data || []);
+    }
+    if (teachersResult.status === 'fulfilled' && teachersResult.value?.success) {
+      setTeachers(teachersResult.value.data || []);
+    }
+    if (requestsResult.status === 'fulfilled' && requestsResult.value?.success) {
+      setRegistrationRequests(requestsResult.value.data || []);
+    }
+
+    if (role === 'admin') {
+      setAdmins([
+        {
+          id: userData.id || 'current-admin',
+          firstName: userData.firstName || userData.name || 'Admin',
+          lastName: userData.lastName || userData.surname || '',
+          mobilePhone: userData.mobilePhone || userData.mobile_phone || '',
+        },
+      ]);
+    } else {
+      setAdmins([]);
+    }
+
+    const loadErrors = [];
+    if (managersResult.status === 'rejected') loadErrors.push('managers');
+    if (studentsResult.status === 'rejected') loadErrors.push('students');
+    if (teachersResult.status === 'rejected') loadErrors.push('teachers');
+    if (requestsResult.status === 'rejected') loadErrors.push('registration requests');
+    if (loadErrors.length) {
+      setErrors((prev) => ({ ...prev, submit: `Failed to load: ${loadErrors.join(', ')}.` }));
     }
   };
 
   const [managerForm, setManagerForm] = useState({ firstName: '', lastName: '', mobilePhone: '', password: '' });
-  const [studentForm, setStudentForm] = useState({ firstName: '', lastName: '', mobilePhone: '' });
-  const [teacherForm, setTeacherForm] = useState({ firstName: '', lastName: '', mobilePhone: '', subject: '' });
+  const [studentForm, setStudentForm] = useState({ firstName: '', lastName: '', mobilePhone: '', password: '' });
+  const [teacherForm, setTeacherForm] = useState({ firstName: '', lastName: '', mobilePhone: '', subject: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [managers, setManagers] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [registrationRequests, setRegistrationRequests] = useState([]);
   const [successMsg, setSuccessMsg] = useState('');
   const [activeTab, setActiveTab] = useState('student'); // 'student' or 'teacher'
 
@@ -128,6 +169,7 @@ const Admin = () => {
   const handleAddStudent = async (e) => {
     e.preventDefault();
     const newErrors = validate(studentForm, 'student');
+    if (!studentForm.password || studentForm.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
@@ -139,11 +181,12 @@ const Admin = () => {
         firstName: studentForm.firstName.trim(),
         lastName: studentForm.lastName.trim(),
         mobilePhone: studentForm.mobilePhone,
+        password: studentForm.password,
         role: 'student',
       });
       if (res.success && res.data) {
         setStudents((s) => [res.data, ...s]);
-        setStudentForm({ firstName: '', lastName: '', mobilePhone: '' });
+        setStudentForm({ firstName: '', lastName: '', mobilePhone: '', password: '' });
         setSuccessMsg('Student added successfully');
       }
     } catch (err) {
@@ -157,6 +200,7 @@ const Admin = () => {
   const handleAddTeacher = async (e) => {
     e.preventDefault();
     const newErrors = validate(teacherForm, 'teacher');
+    if (!teacherForm.password || teacherForm.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
@@ -169,11 +213,12 @@ const Admin = () => {
         lastName: teacherForm.lastName.trim(),
         mobilePhone: teacherForm.mobilePhone,
         subject: teacherForm.subject.trim(),
+        password: teacherForm.password,
         role: 'teacher',
       });
       if (res.success && res.data) {
         setTeachers((t) => [res.data, ...t]);
-        setTeacherForm({ firstName: '', lastName: '', mobilePhone: '', subject: '' });
+        setTeacherForm({ firstName: '', lastName: '', mobilePhone: '', subject: '', password: '' });
         setSuccessMsg('Teacher added successfully');
       }
     } catch (err) {
@@ -183,6 +228,73 @@ const Admin = () => {
       setTimeout(() => setSuccessMsg(''), 2500);
     }
   };
+
+  const handleDeleteUser = async (userId, role) => {
+    const ok = window.confirm(`Delete this ${role} permanently? This cannot be undone.`);
+    if (!ok) return;
+
+    setErrors({});
+    setSuccessMsg('');
+    try {
+      await adminDeleteUser(userId);
+      if (role === 'manager') setManagers((items) => items.filter((u) => u.id !== userId));
+      if (role === 'student') setStudents((items) => items.filter((u) => u.id !== userId));
+      if (role === 'teacher') setTeachers((items) => items.filter((u) => u.id !== userId));
+      setSuccessMsg(`${role.charAt(0).toUpperCase() + role.slice(1)} deleted permanently`);
+    } catch (err) {
+      setErrors({ submit: err.message || 'Failed to delete user' });
+    } finally {
+      setTimeout(() => setSuccessMsg(''), 2500);
+    }
+  };
+
+  const handleApproveRequest = async (req) => {
+    const password = window.prompt(`Set initial password for ${req.firstName} ${req.lastName} (${req.role}). Minimum 6 characters.`);
+    if (!password) return;
+    if (password.length < 6) {
+      setErrors({ submit: 'Password must be at least 6 characters to approve request.' });
+      return;
+    }
+    try {
+      await approveRegistrationRequest(req.id, password);
+      setRegistrationRequests((items) => items.map((r) => (r.id === req.id ? { ...r, status: 'approved' } : r)));
+      loadData();
+      setSuccessMsg('Request approved and user created.');
+    } catch (err) {
+      setErrors({ submit: err.message || 'Failed to approve request' });
+    }
+  };
+
+  const handleRejectRequest = async (req) => {
+    const reason = window.prompt(`Optional rejection reason for ${req.firstName} ${req.lastName}:`, 'Not eligible');
+    try {
+      await rejectRegistrationRequest(req.id, reason || '');
+      setRegistrationRequests((items) => items.map((r) => (r.id === req.id ? { ...r, status: 'rejected' } : r)));
+      setSuccessMsg('Request rejected.');
+    } catch (err) {
+      setErrors({ submit: err.message || 'Failed to reject request' });
+    }
+  };
+
+  const renderUserCard = (user, role) => (
+    <div key={user.id} style={{ background: 'rgba(255,255,255,0.08)', padding: '10px 15px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+      <div>
+        <div style={{ fontWeight: '600' }}>{user.firstName} {user.lastName}</div>
+        <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+          {user.mobilePhone}{role === 'teacher' && user.subject ? ` • ${user.subject}` : ''}
+        </div>
+      </div>
+      {userRole === 'admin' && (
+        <button
+          type="button"
+          onClick={() => handleDeleteUser(user.id, role)}
+          style={{ border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', background: '#b91c1c', color: '#fff', fontSize: '0.8rem' }}
+        >
+          Delete
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <div className="registration-layout">
@@ -228,20 +340,88 @@ const Admin = () => {
                   {isSubmitting ? 'Creating...' : 'Register Manager'}
                 </button>
               </form>
+              {errors.submit && <div className="error-message submit-error" style={{ marginTop: 10 }}>{errors.submit}</div>}
+              {successMsg && <div style={{ color: '#22c55e', marginTop: 10 }}>{successMsg}</div>}
 
-              {managers.length > 0 && (
-                <div style={{ marginTop: 25 }}>
-                  <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>Active Managers</h4>
+              <div style={{ marginTop: 25 }}>
+                <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>Active Admins</h4>
+                {admins.length > 0 ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 15 }}>
-                    {managers.map(m => (
-                      <div key={m.id} style={{ background: 'rgba(255,255,255,0.08)', padding: '10px 15px', borderRadius: 8 }}>
-                        <div style={{ fontWeight: '600' }}>{m.firstName} {m.lastName}</div>
-                        <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{m.mobilePhone}</div>
+                    {admins.map((a) => renderUserCard(a, 'admin'))}
+                  </div>
+                ) : (
+                  <p style={{ marginTop: 12, opacity: 0.7 }}>No admins found.</p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 25 }}>
+                <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>Active Managers ({managers.length})</h4>
+                {managers.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 15 }}>
+                    {managers.map((m) => renderUserCard(m, 'manager'))}
+                  </div>
+                ) : (
+                  <p style={{ marginTop: 12, opacity: 0.7 }}>No managers found.</p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 25 }}>
+                <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>All Students ({students.length})</h4>
+                {students.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 15 }}>
+                    {students.map((s) => renderUserCard(s, 'student'))}
+                  </div>
+                ) : (
+                  <p style={{ marginTop: 12, opacity: 0.7 }}>No students found.</p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 25 }}>
+                <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>All Teachers ({teachers.length})</h4>
+                {teachers.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 15 }}>
+                    {teachers.map((t) => renderUserCard(t, 'teacher'))}
+                  </div>
+                ) : (
+                  <p style={{ marginTop: 12, opacity: 0.7 }}>No teachers found.</p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 25 }}>
+                <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10 }}>
+                  Registration Requests ({registrationRequests.filter((r) => r.status === 'pending').length} pending)
+                </h4>
+                {registrationRequests.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginTop: 15 }}>
+                    {registrationRequests.map((req) => (
+                      <div key={req.id} style={{ background: 'rgba(255,255,255,0.08)', padding: '10px 15px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                        <div>
+                          <div style={{ fontWeight: '600' }}>
+                            {req.firstName} {req.lastName} ({req.role})
+                          </div>
+                          <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                            {req.mobilePhone}{req.subject ? ` • ${req.subject}` : ''} • {req.status}
+                          </div>
+                        </div>
+                        {req.status === 'pending' ? (
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button type="button" onClick={() => handleApproveRequest(req)} style={{ border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', background: '#15803d', color: '#fff', fontSize: '0.8rem' }}>
+                              Approve
+                            </button>
+                            <button type="button" onClick={() => handleRejectRequest(req)} style={{ border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', background: '#b91c1c', color: '#fff', fontSize: '0.8rem' }}>
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', opacity: 0.8, textTransform: 'capitalize' }}>{req.status}</span>
+                        )}
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p style={{ marginTop: 12, opacity: 0.7 }}>No registration requests yet.</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -302,7 +482,13 @@ const Admin = () => {
                       <input name="mobilePhone" value={studentForm.mobilePhone} onChange={handleStudentChange} className={`form-input ${errors.mobilePhone ? 'error' : ''}`} placeholder="(123) 456-7890" maxLength={14} />
                       {errors.mobilePhone && <span className="error-message">{errors.mobilePhone}</span>}
                     </div>
+                    <div className="form-group">
+                      <label className="form-label">Password <span className="required">*</span></label>
+                      <input type="password" name="password" value={studentForm.password} onChange={handleStudentChange} className={`form-input ${errors.password ? 'error' : ''}`} placeholder="At least 6 characters" />
+                      {errors.password && <span className="error-message">{errors.password}</span>}
+                    </div>
                     {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
+                    {successMsg && <div style={{ color: '#22c55e' }}>{successMsg}</div>}
                     <button type="submit" className="submit-button" disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Assign Student'}</button>
                   </form>
 
@@ -310,12 +496,7 @@ const Admin = () => {
                     <div style={{ marginTop: 30 }}>
                       <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 8, marginBottom: 12 }}>Assigned Students</h4>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        {students.map((s) => (
-                          <div key={s.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 15px', borderRadius: 8 }}>
-                            <div style={{ fontWeight: '600' }}>{s.firstName} {s.lastName}</div>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{s.mobilePhone}</div>
-                          </div>
-                        ))}
+                        {students.map((s) => renderUserCard(s, 'student'))}
                       </div>
                     </div>
                   )}
@@ -348,8 +529,14 @@ const Admin = () => {
                         <input name="subject" value={teacherForm.subject} onChange={handleTeacherChange} className={`form-input ${errors.subject ? 'error' : ''}`} placeholder="e.g. Math" />
                         {errors.subject && <span className="error-message">{errors.subject}</span>}
                       </div>
+                      <div className="form-group">
+                        <label className="form-label">Password <span className="required">*</span></label>
+                        <input type="password" name="password" value={teacherForm.password} onChange={handleTeacherChange} className={`form-input ${errors.password ? 'error' : ''}`} placeholder="At least 6 characters" />
+                        {errors.password && <span className="error-message">{errors.password}</span>}
+                      </div>
                     </div>
                     {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
+                    {successMsg && <div style={{ color: '#22c55e' }}>{successMsg}</div>}
                     <button type="submit" className="submit-button" disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Assign Teacher'}</button>
                   </form>
 
@@ -357,12 +544,7 @@ const Admin = () => {
                     <div style={{ marginTop: 30 }}>
                       <h4 style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 8, marginBottom: 12 }}>Assigned Teachers</h4>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        {teachers.map((t) => (
-                          <div key={t.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 15px', borderRadius: 8 }}>
-                            <div style={{ fontWeight: '600' }}>{t.firstName} {t.lastName}</div>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{t.mobilePhone} • {t.subject}</div>
-                          </div>
-                        ))}
+                        {teachers.map((t) => renderUserCard(t, 'teacher'))}
                       </div>
                     </div>
                   )}

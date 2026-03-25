@@ -22,6 +22,7 @@ const ManagerDashboard = () => {
 
     const userRole = localStorage.getItem('userRole') || '';
     const isTeacher = userRole === 'teacher';
+    const backDashboardRoute = isTeacher ? '/teacher/dashboard' : '/manager/dashboard';
 
     useEffect(() => {
         // Auto-select exam from URL query param ?exam=<id>
@@ -151,7 +152,7 @@ const ManagerDashboard = () => {
                 <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <button
-                            onClick={() => navigate(isTeacher ? '/teacher/dashboard' : '/admin')}
+                            onClick={() => navigate(backDashboardRoute)}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '14px' }}
                         >
                             <ArrowLeft size={16} /> Back to Dashboard

@@ -92,7 +92,7 @@ const Login = () => {
                         </button>
 
                         <p className="form-note">
-                            Don't have an account? <span style={{ color: 'var(--primary)', cursor: 'pointer' }} onClick={() => navigate('/select-role')}>Register here</span>
+                            Need an account? Contact your administrator to be assigned.
                         </p>
                     </form>
                 </div>

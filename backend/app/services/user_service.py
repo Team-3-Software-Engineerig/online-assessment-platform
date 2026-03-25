@@ -26,6 +26,11 @@ async def self_register_user(mobile_phone: str, name: str, surname: str, passwor
     # Check if role matches
     if existing_user.get("role") != role:
         raise ValueError(f"Mobile number registered but not with the role: {role}. Please contact support.")
+
+    # If a password already exists, account is already provisioned and should use login.
+    # This prevents bypassing authentication by re-registering with a new password.
+    if existing_user.get("password_hash"):
+        raise ValueError("Account already activated. Please login with your assigned credentials.")
         
     # Prepare update data
     update_data = {
@@ -34,8 +39,9 @@ async def self_register_user(mobile_phone: str, name: str, surname: str, passwor
         "is_active": True
     }
     
-    if password:
-        update_data["password_hash"] = get_password_hash(password)
+    if not password:
+        raise ValueError("Password is required")
+    update_data["password_hash"] = get_password_hash(password)
     
     if subject:
         update_data["subject"] = subject
@@ -74,9 +80,8 @@ async def create_user_full(mobile_phone: str, name: str, surname: str, password:
     if existing_user:
         raise ValueError("Mobile phone number already registered")
     
-    # Use mobile phone as default password if not provided (for students/managers)
     if not password:
-        password = mobile_phone
+        raise ValueError("Password is required")
         
     # Hash password
     password_hash = get_password_hash(password)

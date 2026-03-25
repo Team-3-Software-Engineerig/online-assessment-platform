@@ -133,6 +133,11 @@ async def create_indexes():
     await exam_sessions_collection.create_index("session_token", unique=True)
     await exam_sessions_collection.create_index("student_id")
 
+    registration_requests_collection = database.registration_requests
+    await registration_requests_collection.create_index("status")
+    await registration_requests_collection.create_index("created_at")
+    await registration_requests_collection.create_index([("mobile_phone", 1), ("role", 1), ("status", 1)])
+
 
 async def close_mongo_connection():
     """Close MongoDB connection."""

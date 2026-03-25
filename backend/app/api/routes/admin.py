@@ -1,9 +1,13 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from typing import List
+from datetime import datetime
 from app.api.routes.auth import get_current_user
-from app.api.deps import require_admin
 from app.schemas.user import UserCreate, UserResponse
 from app.services.user_service import create_user_with_role
+from app.schemas.registration_request import (
+    RegistrationRequestApprove,
+    RegistrationRequestReject,
+    RegistrationRequestResponse,
+)
 from app.services import exam_service
 import app.db.db as db_module
 from bson import ObjectId
@@ -144,6 +148,141 @@ async def get_all_managers(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/registration-requests", response_model=list[RegistrationRequestResponse])
+async def get_registration_requests(current_user: dict = Depends(get_current_user)):
+    """Get pending registration requests for admin review."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can view registration requests")
+
+    requests = []
+    cursor = _db().registration_requests.find({}).sort("created_at", -1)
+    async for req in cursor:
+        requests.append(
+            RegistrationRequestResponse(
+                id=str(req["_id"]),
+                mobile_phone=req.get("mobile_phone", ""),
+                mobilePhone=req.get("mobile_phone", ""),
+                name=req.get("name", ""),
+                surname=req.get("surname", ""),
+                firstName=req.get("name", ""),
+                lastName=req.get("surname", ""),
+                        school=req.get("school"),
+                        emergency_contact=req.get("emergency_contact"),
+                        email=req.get("email"),
+                role=req.get("role", ""),
+                subject=req.get("subject"),
+                status=req.get("status", "pending"),
+                created_at=req.get("created_at"),
+                reviewed_at=req.get("reviewed_at"),
+                review_note=req.get("review_note"),
+            )
+        )
+    return requests
+
+
+@router.post("/registration-requests/{request_id}/approve", status_code=status.HTTP_200_OK)
+async def approve_registration_request(
+    request_id: str,
+    payload: RegistrationRequestApprove,
+    current_user: dict = Depends(get_current_user),
+):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can approve registration requests")
+    if not ObjectId.is_valid(request_id):
+        raise HTTPException(status_code=400, detail="Invalid request id")
+
+    request_doc = await _db().registration_requests.find_one({"_id": ObjectId(request_id)})
+    if not request_doc:
+        raise HTTPException(status_code=404, detail="Registration request not found")
+    if request_doc.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Request is already reviewed")
+
+    try:
+        created = await create_user_with_role(
+            mobile_phone=request_doc.get("mobile_phone", ""),
+            name=request_doc.get("name", ""),
+            surname=request_doc.get("surname", ""),
+            password=payload.password,
+            role=request_doc.get("role", ""),
+            subject=request_doc.get("subject"),
+        )
+        await _db().registration_requests.update_one(
+            {"_id": ObjectId(request_id)},
+            {
+                "$set": {
+                    "status": "approved",
+                    "reviewed_at": datetime.utcnow(),
+                    "review_note": "Approved by admin",
+                    "created_user_id": created.get("id"),
+                }
+            },
+        )
+        return {"message": "Request approved and user created", "user": created}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to approve request: {str(exc)}")
+
+
+@router.post("/registration-requests/{request_id}/reject", status_code=status.HTTP_200_OK)
+async def reject_registration_request(
+    request_id: str,
+    payload: RegistrationRequestReject,
+    current_user: dict = Depends(get_current_user),
+):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can reject registration requests")
+    if not ObjectId.is_valid(request_id):
+        raise HTTPException(status_code=400, detail="Invalid request id")
+
+    result = await _db().registration_requests.update_one(
+        {"_id": ObjectId(request_id), "status": "pending"},
+        {
+            "$set": {
+                "status": "rejected",
+                "reviewed_at": datetime.utcnow(),
+                "review_note": payload.reason or "Rejected by admin",
+            }
+        },
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Pending request not found")
+    return {"message": "Request rejected"}
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_200_OK)
+async def delete_user_permanently(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Permanently delete a user and any role-specific document."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can delete users")
+
+    try:
+        user_filters = [{"_id": user_id}]
+        if ObjectId.is_valid(user_id):
+            user_filters.insert(0, {"_id": ObjectId(user_id)})
+
+        user_doc = await _db().users.find_one({"$or": user_filters})
+        if not user_doc:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        stored_user_id = user_doc.get("_id")
+        role = user_doc.get("role")
+        if role == "student":
+            await _db().students.delete_many({"user_id": {"$in": [stored_user_id, user_id]}})
+        elif role == "teacher":
+            await _db().teachers.delete_many({"user_id": {"$in": [stored_user_id, user_id]}})
+
+        await _db().users.delete_one({"_id": stored_user_id})
+        return {"message": "User deleted permanently", "id": user_id, "role": role}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete user: {str(exc)}")
+
+
 @router.post("/exams/create", status_code=status.HTTP_201_CREATED)
 async def create_exam(
     data: dict,
@@ -277,6 +416,11 @@ async def create_user_admin(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins and managers can create users."
+        )
+    if not user_data.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is required when creating users."
         )
 
     try:

@@ -58,7 +58,7 @@ const UserRoleSelection = () => {
           <div className="welcome-icon">👋</div>
           <h1 className="welcome-title">Welcome to Assessment Platform</h1>
           <p className="welcome-subtitle">
-            Please select your role to continue with registration
+            Please select your role to request account registration
           </p>
           <div className="header-divider">
             <div className="divider-line"></div>
@@ -137,7 +137,7 @@ const UserRoleSelection = () => {
             <div className="info-icon">⚡</div>
             <div className="info-text">
               <strong>Fast</strong>
-              <span>Quick registration process</span>
+              <span>Quick request process</span>
             </div>
           </div>
           <div className="info-item">

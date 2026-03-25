@@ -139,6 +139,11 @@ export async function adminCreateUser(payload) {
   return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(normalizedPayload) });
 }
 
+export async function adminDeleteUser(userId) {
+  const apiUrl = `${API_BASE_URL}/api/admin/users/${userId}`;
+  return apiRequest(apiUrl, { method: 'DELETE' });
+}
+
 export async function registerUser(payload) {
   const apiUrl = `${API_BASE_URL}/api/register`;
   const normalizedPayload = { ...payload };
@@ -149,6 +154,39 @@ export async function registerUser(payload) {
     normalizedPayload.mobile_phone = normalizePhone(normalizedPayload.mobile_phone);
   }
   return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(normalizedPayload) });
+}
+
+export async function requestRegistration(payload) {
+  const apiUrl = `${API_BASE_URL}/api/register/request`;
+  const normalizedPayload = { ...payload };
+  if (normalizedPayload.mobilePhone) {
+    normalizedPayload.mobilePhone = normalizePhone(normalizedPayload.mobilePhone);
+  }
+  if (normalizedPayload.mobile_phone) {
+    normalizedPayload.mobile_phone = normalizePhone(normalizedPayload.mobile_phone);
+  }
+  if (normalizedPayload.emergencyContact) {
+    normalizedPayload.emergencyContact = normalizePhone(normalizedPayload.emergencyContact);
+  }
+  if (normalizedPayload.emergency_contact) {
+    normalizedPayload.emergency_contact = normalizePhone(normalizedPayload.emergency_contact);
+  }
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify(normalizedPayload) });
+}
+
+export async function getRegistrationRequests() {
+  const apiUrl = `${API_BASE_URL}/api/admin/registration-requests`;
+  return apiRequest(apiUrl, { method: 'GET' });
+}
+
+export async function approveRegistrationRequest(requestId, password) {
+  const apiUrl = `${API_BASE_URL}/api/admin/registration-requests/${requestId}/approve`;
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify({ password }) });
+}
+
+export async function rejectRegistrationRequest(requestId, reason = '') {
+  const apiUrl = `${API_BASE_URL}/api/admin/registration-requests/${requestId}/reject`;
+  return apiRequest(apiUrl, { method: 'POST', body: JSON.stringify({ reason }) });
 }
 
 // Legacy export for Register.jsx
